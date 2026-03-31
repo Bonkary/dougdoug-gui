@@ -13,7 +13,7 @@ class TwitchPlays(wdgts.CustomFrame):
         self._consoleSelector = ConsoleSelector(master=self, app=self)
         self._consoleSelector.grid(row=0, column=0, pady=(0,20))
         
-        self._instructions = ctk.CTkLabel(master=self, text="In the text box, enter the phrase for chat to use for that key", font=(FONT_NAME,20))
+        self._instructions = ctk.CTkLabel(master=self, text="Input your keyboard key, then the chat message commands", font=(FONT_NAME,20))
         self._instructions.grid(row=1, column=0)
         
         self._controlAssignmentPanel = ControlAssignmentPanel(master=self)
@@ -29,11 +29,11 @@ class TwitchPlays(wdgts.CustomFrame):
         self._stopPlayingButton.grid(row=3, column=0, pady=(50,0))
         self._stopPlayingButton.hide()
         
-        
     def assign_controls(self) -> None:
         pass
     
     def start_playing(self) -> None:
+        self._controlAssignmentPanel.save_new_control_scheme()
         self._stopPlayingButton.show()
         self._startPlayingButton.hide()
         
@@ -75,5 +75,8 @@ class ControlAssignmentPanel(wdgts.CustomFrame):
             case 'Gameboy':
                 self._activeControlScheme = GameboyControls(master=self)
                 self._activeControlScheme.show()
+                
+    def save_new_control_scheme(self) -> None:
+        self._activeControlScheme.save_scheme()
 
 

@@ -75,11 +75,22 @@ class ControlAssignment(CustomFrame):
         self._keyLabel = ctk.CTkLabel(master=self, text=action, font=(FONT_NAME, 30), width=80)
         self._keyLabel.grid(row=0, column=0, padx=(20,0))
         
-        self._pressEntry = NamedEntry(master=self, name="Press")
-        self._pressEntry.grid(row=1, column=0, pady=2, sticky='ew', columnspan=3)
+        self._keyboardEntry = NamedEntry(master=self, name="Keyboard")
+        self._keyboardEntry.grid(row=1, column=0, pady=2, sticky='ew')
         
-        self._holdEntry = NamedEntry(master=self, name="Hold")
-        self._holdEntry.grid(row=2, column=0, pady=2, sticky='ew', columnspan=3)
+        self._pressEntry = NamedEntry(master=self, name="Chat Press")
+        self._pressEntry.grid(row=2, column=0, pady=2, sticky='ew')
+        
+        self._holdEntry = NamedEntry(master=self, name="Chat Hold")
+        self._holdEntry.grid(row=3, column=0, pady=2, sticky='ew')
+        
+        
+    def get_controls(self) -> dict:
+        return {
+            'action': self._action,
+            'press': self._pressEntry.get(),
+            'hold': self._pressEntry.get()
+        }
    
 class NamedEntry(CustomFrame):
     def __init__(self, master, name: str, **kwargs):
@@ -90,10 +101,13 @@ class NamedEntry(CustomFrame):
         self.grid_columnconfigure((0,1), weight=EQUAL_WEIGHT)
         
         self._nameLabel = ctk.CTkLabel(master=self, text=name, font=(FONT_NAME,20), width=5)
-        self._nameLabel.grid(row=0, column=0, sticky='w', padx=(0,5))
+        self._nameLabel.grid(row=0, column=0, sticky='w', padx=(0,10))
         
         self._entry = ClearableEntry(master=self, height=10)
         self._entry.grid(row=0, column=1, sticky='e')
+        
+    def get(self) -> str:
+        return self._entry.get().strip()
         
 
 

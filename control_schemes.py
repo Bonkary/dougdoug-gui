@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import widgets as wdgts
 from constants import *
+from configurations import *
 
 class EmptyScheme(wdgts.CustomFrame):
     def __init__(self, master):
@@ -49,6 +50,20 @@ class GameboyControls(wdgts.CustomFrame):
     def open_combinations(self) -> None:
         popup = GameboyControlCombinations(master=self)
         popup.wait_window()
+        
+    def save_control_scheme(self) -> None:
+        CONTROL_SCHEMES['Gameboy'] = {
+            'A': self._AButton.get_controls(),
+            'B': self._BButton.get_controls(),
+            'L': self._LButton.get_controls(),
+            'R': self._RButton.get_controls(),
+            'dpad_left': self._DPadLeft.get_controls(),
+            'dpad_right': self._DPadRight.get_controls(),
+            'dpad_up': self._DPadUp.get_controls(),
+            'dpad_down': self._DPadDown.get_controls(),
+            'start': self._DPadDown.get_controls(),
+            'select': self._DPadDown.get_controls()
+        }
         
 class GameboyControlCombinations(wdgts.CustomToplevel):
     def __init__(self, master):
