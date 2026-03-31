@@ -44,7 +44,6 @@ class TwitchPlays(wdgts.HideableFrame):
         self._stopPlayingButton.hide()
         self._startPlayingButton.show()
 
-
 class ConsoleSelector(wdgts.HideableFrame):
     def __init__(self, master):
         super().__init__(master=master)
@@ -54,7 +53,7 @@ class ConsoleSelector(wdgts.HideableFrame):
         self._label.grid(row=0, column=0, pady=(0,10))
         
         self._dropdown = ctk.CTkComboBox(master=self, values=AVAILABLE_CONSOLES, 
-                                         width=230, height=40, font=(FONT_NAME, 20))
+                                         width=230, height=40, font=(FONT_NAME, 20), state='readonly')
         self._dropdown.grid(row=1, column=0)
 
 class ControlAssignmentPanel(wdgts.HideableFrame):
@@ -64,9 +63,6 @@ class ControlAssignmentPanel(wdgts.HideableFrame):
         
         self.gameboyControls = GameboyControls(master=self)
         self.gameboyControls.grid(row=0, column=0)
-
-
-
 
 
 
