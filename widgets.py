@@ -39,8 +39,6 @@ class ToggleableButton(HideableButton):
     def disable(self) -> None:
         self.configure(state='disabled')
         
-        
-
 class ClearableEntry(HideableFrame):
     def __init__(self, master, width: int = 200, height: int = 50, font: tuple = (FONT_NAME,30)):
         super().__init__(master=master)
@@ -59,7 +57,19 @@ class ClearableEntry(HideableFrame):
     def clear(self) -> None:
         self._entry.delete(0, ctk.END)
 
-
+class ControlAssignment(HideableFrame):
+    def __init__(self, master, action: str, **kwargs):
+        super().__init__(master, **kwargs)
+        self._action = action
+        self.configure(fg_color=colors.TWITCH_PURPLE)
+        
+        self.grid_columnconfigure(index=(0,1), weight=EQUAL_WEIGHT)
+        
+        self._keyLabel = ctk.CTkLabel(master=self, text=action, font=(FONT_NAME, 30), width=80)
+        self._keyLabel.grid(row=0, column=0, sticky='w', padx=10)
+        
+        self._entry = ClearableEntry(master=self)
+        self._entry.grid(row=0, column=1, sticky='e', padx=10)
    
         
 
