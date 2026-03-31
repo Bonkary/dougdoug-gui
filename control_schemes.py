@@ -2,7 +2,11 @@ import customtkinter as ctk
 import widgets as wdgts
 from constants import *
 
-class GameboyControls(wdgts.HideableFrame):
+class EmptyScheme(wdgts.CustomFrame):
+    def __init__(self, master):
+        super().__init__(master=master)
+
+class GameboyControls(wdgts.CustomFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
         self.configure(fg_color=colors.TWITCH_PURPLE)
@@ -37,3 +41,17 @@ class GameboyControls(wdgts.HideableFrame):
         
         self._startButton = wdgts.ControlAssignment(master=self, action="Start")
         self._startButton.grid(row=2, column=2, padx=20, pady=20)
+        
+        self._combosButton = wdgts.CustomButton(master=self, text='Open Button Combos', command=self.open_combinations,
+                                                width=200, height=40, font=(FONT_NAME, 20))
+        self._combosButton.grid(row=3, column=1, columnspan=2)
+        
+    def open_combinations(self) -> None:
+        popup = GameboyControlCombinations(master=self)
+        popup.wait_window()
+        
+class GameboyControlCombinations(wdgts.CustomToplevel):
+    def __init__(self, master):
+        super().__init__(master=master)
+        
+        self.geometry(COMBINATIONS_WINDOW_SIZE)

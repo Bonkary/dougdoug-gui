@@ -9,12 +9,13 @@ import json
 import concurrent.futures
 import traceback
 
-# This is all based off of DougDoug's code. I just refactored it more to my liking.
+# This is all based off of DougDoug's code. I just made it less bald.
 MAX_TIME_TO_WAIT_FOR_LOGIN = 3
 YOUTUBE_FETCH_INTERVAL = 1
 REGEX_PATTERN = b'^(?::(?:([^ !\r\n]+)![^ \r\n]*|[^ \r\n]*) )?([^ \r\n]+)(?: ([^:\r\n]*))?(?: :([^\r\n]*))?\r\n'
 HOST = 'irc.chat.twitch.tv'
 PORT = 6667
+NO_NEW_MESSAGE_TIMEOUT = 5
 
 class Twitch():
     '''
@@ -25,15 +26,16 @@ class Twitch():
     '''
     
     def __init__(self, *, channel_name: str):
-        self._regexCompile = re.compile(REGEX_PATTERN, re.MULTILINE)
+        self._regexCore = re.compile(REGEX_PATTERN, re.MULTILINE)
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._loginOk = False
         self._channelName = channel_name
         self._loginTimestamp = 0
-        self._partial: list = None
+        self._partial = []
         
     def connect(self) -> None:
         '''Connect to the socket and login to Twitch'''
+        print("Connecting to Twitch...")
         self._socket.connect((HOST, PORT))
         self.login()
         
@@ -47,8 +49,9 @@ class Twitch():
             if ircMessage['command'] == '001' and not self._loginOk:
                 bytesSent = self._socket.send((f'JOIN #{self._channelName}\r\n').encode())
                 if bytesSent > 0:
-                    print(f'Successfully logged in. Joining channel {self._channelName}')
+                    print(f'Successfully logged in. Listening to channel: {self._channelName}')
                     self._loginOk = True
+                    break
     
     def reconnect(self, *, delay: int = 0) -> None:
         '''
@@ -61,18 +64,17 @@ class Twitch():
         self.connect()
     
     def get_messages(self) -> list[dict]:
+        '''Takes the IRC messages and translates the username and message to text'''
         cmdToIgnore = ['JOIN', '001', '002', '003', '004', '375', '372', '376', '353', '366']
-        privmsgs = []
+        messages = []
         ircMessages = self.receive_irc_data()
         for ircMessage in ircMessages:
             cmd = ircMessage['command']
             if cmd == 'PRIVMSG':
-                newMessage = {
+                messages.append({
                         'username': ircMessage['name'],
                         'message': ircMessage['trailing']
-                    }
-                if not newMessage in privmsgs:
-                    privmsgs.append(newMessage)
+                    })
             elif cmd == 'PING':
                 self._socket.send(b'PONG :tmi.twitch.tv\r\n')
             elif cmd == 'NOTICE':
@@ -86,15 +88,23 @@ class Twitch():
             if time.time() - self._loginTimestamp > MAX_TIME_TO_WAIT_FOR_LOGIN:
                 print("no response from twitch... reconnecting")
                 self.reconnect()
-                privmsgs = []
+                messages = []
 
-        return privmsgs
+        return messages
     
-    def receive_irc_data(self) -> list[dict]:
+    def receive_irc_data(self, *, interval: int = NO_NEW_MESSAGE_TIMEOUT) -> list[dict]:
+        f'''
+        Get the IRC messages from Twitch.
+        
+        After receiving no new messages within a set time interval, it will return the obtained IRC messages.
+        
+        Arguments:
+            interval - Value of seconds to wait between messages before calling it quits.
+        '''
         buffer = b''
         received = b''
         data = []
-        self._socket.settimeout(10)
+        self._socket.settimeout(NO_NEW_MESSAGE_TIMEOUT)
         while True:
             try:
                 received = self._socket.recv(4096)
@@ -109,15 +119,14 @@ class Twitch():
                 print('Connection closed by Twitch. Reconnecting in 5 seconds...')
                 self.reconnect(delay=5)
                 return []
-            buffer += received
             received = b''
         
         if buffer:
             if self._partial:
                 buffer = self._partial + buffer
-                self._partial.clear()
+                self._partial = []
             
-            matches = list(self._regexCompile.finditer(buffer))
+            matches = list(self._regexCore.finditer(buffer))
             for match in matches:
                 data.append({
                     'name':     (match.group(1) or b'').decode(errors='replace'),
@@ -135,11 +144,5 @@ class Twitch():
                 
                 if matches[0].start():
                     print("IDK WHAT THIS MEANS")
-        
+                    
         return data
-            
-        
-        
-
-        
-        
