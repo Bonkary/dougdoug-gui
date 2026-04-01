@@ -147,7 +147,7 @@ class GameboyControls(wdgts.CustomFrame):
             self._startButton.set_controls(CONTROL_SCHEMES['Gameboy']['start'])
         except KeyError:
             pass
-        
+
 class ComboButtonConfig(wdgts.CustomToplevel):
     def __init__(self, *, master, console, **kwargs):
         super().__init__(master, **kwargs)
