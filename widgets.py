@@ -30,13 +30,26 @@ class CustomButton(ctk.CTkButton):
         self.isHidden = False
         self.grid()
 
-class CustomToplevel(ctk.CTkToplevel):
+class CustomLabel(ctk.CTkLabel):
     def __init__(self, master, **kwargs):
         super().__init__(master=master, **kwargs)
         self.configure(fg_color=colors.TWITCH_PURPLE)
-        self.wm_transient(master)
+        self.isHidden = False
+    
+    def show(self) -> None:
+        self.isHidden = False
+        self.grid()
+        
+    def hide(self) -> None:
+        self.isHidden = True
+        self.grid_remove()
+
+class CustomToplevel(ctk.CTkToplevel):
+    def __init__(self, app_root, **kwargs):
+        super().__init__(master=app_root, **kwargs)
+        self.configure(fg_color=colors.TWITCH_PURPLE)
+        self.wm_transient(app_root)
         self.focus()
-        self.grab_set()
 
 class ToggleableButton(CustomButton):
     def __init__(self, master, **kwargs):
@@ -51,7 +64,7 @@ class ToggleableButton(CustomButton):
 class ClearableEntry(CustomFrame):
     def __init__(self, master, width: int = 200, height: int = 50, font: tuple = (FONT_NAME,20), justify: str = 'left'):
         super().__init__(master=master)
-        self.grid_columnconfigure(index=0, weight=EQUAL_WEIGHT)
+        self.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST)
         
         self._entry = ctk.CTkEntry(master=self, width=width, height=height, font=font, justify=justify)
         self._entry.grid(row=0, column=0)
@@ -70,7 +83,7 @@ class ControlAssignment(CustomFrame):
     def __init__(self, master, action: str, **kwargs):
         super().__init__(master, **kwargs)
         self._action = action
-        self.grid_columnconfigure(index=(0), weight=EQUAL_WEIGHT, uniform='column')
+        self.grid_columnconfigure(index=(0), weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
         
         self._keyLabel = ctk.CTkLabel(master=self, text=action, font=(FONT_NAME, 30), width=80)
         self._keyLabel.grid(row=0, column=0, padx=(20,0))
@@ -98,7 +111,7 @@ class NamedEntry(CustomFrame):
         self._name = name
         
         self.configure(fg_color=colors.TWITCH_PURPLE)
-        self.grid_columnconfigure((0,1), weight=EQUAL_WEIGHT)
+        self.grid_columnconfigure((0,1), weight=ONLY_THESE_COLUMNS_EXIST)
         
         self._nameLabel = ctk.CTkLabel(master=self, text=name, font=(FONT_NAME,20), width=5)
         self._nameLabel.grid(row=0, column=0, sticky='w', padx=(0,10))
@@ -108,6 +121,10 @@ class NamedEntry(CustomFrame):
         
     def get(self) -> str:
         return self._entry.get().strip()
-        
 
+
+
+
+        
+    
 

@@ -7,11 +7,15 @@ class EmptyScheme(wdgts.CustomFrame):
     def __init__(self, master):
         super().__init__(master=master)
 
+    def save_scheme(self) -> None:
+        pass
+
 class GameboyControls(wdgts.CustomFrame):
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
+    def __init__(self, panel, **kwargs):
+        super().__init__(master=panel, **kwargs)
+        self._panel = panel
         self.configure(fg_color=colors.TWITCH_PURPLE)
-        self.grid_columnconfigure((0,1,2,3), weight=EQUAL_WEIGHT)
+        self.grid_columnconfigure((0,1,2,3), weight=ONLY_THESE_COLUMNS_EXIST)
         
         self._AButton = wdgts.ControlAssignment(master=self, action="A")
         self._AButton.grid(row=0, column=0, padx=20, pady=20)
