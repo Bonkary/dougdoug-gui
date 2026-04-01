@@ -84,18 +84,33 @@ class ClearableEntry(CustomFrame):
         self._entry.insert(0, value)
 
 class NamedEntry(CustomFrame):
-    def __init__(self, master, name: str, **kwargs):
+    def __init__(self, master, name: str, name_placement: str, **kwargs):
         super().__init__(master=master, **kwargs)
         self._name = name
+        match name_placement:
+            case 'side':
+                configureColumns = (0,1)
+                entryRow = 0
+                entryColumn = 1
+                nameSticky = 'e'
+                entrySticky = 'e'
+            case 'top':
+                configureColumns = (0)
+                entryRow = 1
+                entryColumn = 0
+                nameSticky = 'ew'
+                entrySticky = 'ew'
+            case _:
+                raise ValueError(f'{name_placement} is not a valid option.')
         
         self.configure(fg_color=colors.TWITCH_PURPLE)
-        self.grid_columnconfigure((0,1), weight=ONLY_THESE_COLUMNS_EXIST)
+        self.grid_columnconfigure(index=configureColumns, weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
         
         self._nameLabel = ctk.CTkLabel(master=self, text=name, font=(FONT_NAME,20), width=5)
-        self._nameLabel.grid(row=0, column=0, sticky='w', padx=(0,10))
+        self._nameLabel.grid(row=0, column=0, sticky=nameSticky, padx=(0,10))
         
         self._entry = ClearableEntry(master=self, height=10)
-        self._entry.grid(row=0, column=1, sticky='e')
+        self._entry.grid(row=entryRow, column=entryColumn, sticky=entrySticky)
         
     def get(self) -> str:
         return self._entry.get().strip()

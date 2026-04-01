@@ -52,13 +52,13 @@ class ControlAssignment(wdgts.CustomFrame):
                                       font=ctk.CTkFont(family=FONT_NAME, size=30, underline=True))
         self._keyLabel.grid(row=0, column=0, padx=(20,0))
         
-        self._keyboardEntry = wdgts.NamedEntry(master=self, name="Keyboard")
+        self._keyboardEntry = wdgts.NamedEntry(master=self, name="Keyboard", name_placement='side')
         self._keyboardEntry.grid(row=1, column=0, pady=2, sticky='ew')
         
-        self._pressEntry = wdgts.NamedEntry(master=self, name="Chat Press")
+        self._pressEntry = wdgts.NamedEntry(master=self, name="Press Button", name_placement='side')
         self._pressEntry.grid(row=2, column=0, pady=2, sticky='ew')
         
-        self._holdEntry = wdgts.NamedEntry(master=self, name="Chat Hold")
+        self._holdEntry = wdgts.NamedEntry(master=self, name="Hold Button", name_placement='side')
         self._holdEntry.grid(row=3, column=0, pady=2, sticky='ew')
          
     def get_controls(self) -> dict:
@@ -156,27 +156,47 @@ class ComboButtonConfig(wdgts.CustomToplevel):
         self.geometry(BUTTON_COMBO_WINDOW_SIZE)
         self.grid_columnconfigure(index=(0,1), weight=ONLY_THESE_COLUMNS_EXIST)
         
-        self._title = wdgts.CustomLabel(master=self, text='Create Button Combos', font=(FONT_NAME,30))
-        self._title.grid(row=0, column=0)
+        # CREATE COMBOS
+        self._createCombos = wdgts.CustomFrame(master=self)
+        self._createCombos.grid_columnconfigure(index=(0,1), weight=ONLY_THESE_COLUMNS_EXIST)
+        self._createCombos.grid(row=0, column=0, sticky='w', pady=20, padx=20)
         
-        instructionsText = [
-            "You can see on the side there is a list of button names.\n",
-            "In Key 1, you're going to select a button from the side and enter the value under the 'ID' column."
-        ]
-        self._instructions = wdgts.CustomLabel(master=self,
-                                               text="You can see on the side there is a list of button names. You get to enter what I've named my variables.\n")
+        self._title = wdgts.CustomLabel(master=self._createCombos, text='Create Button Combos', font=(FONT_NAME,30))
+        self._title.grid(row=0, column=0, columnspan=2)
         
-        self._key1 = wdgts.NamedEntry(master=self, name="Key 1")
-        self._key1.grid(row=1, column=0, pady=5)
+        self._key1 = wdgts.NamedEntry(master=self._createCombos, name="Key 1", name_placement='top')
+        self._key1.grid(row=2, column=0, pady=5, sticky='e')
         
-        self._key2 = wdgts.NamedEntry(master=self, name='Key 2')
-        self._key2.grid(row=1, column=1)
+        self._key2 = wdgts.NamedEntry(master=self._createCombos, name='Key 2', name_placement='top')
+        self._key2.grid(row=2, column=1, pady=5, sticky='w')
         
-        self._press = wdgts.NamedEntry(master=self, name='Chat Press')
-        self._press.grid(row=2, column=0, columnspan=2)
+        self._press = wdgts.NamedEntry(master=self._createCombos, name='Chat Press', name_placement='side')
+        self._press.grid(row=3, column=0, pady=10, columnspan=2)
         
-        self._hold = wdgts.NamedEntry(master=self, name="Chat Hold")
-        self._hold.grid(row=3, column=0, columnspan=2)   
+        self._hold = wdgts.NamedEntry(master=self._createCombos, name="Chat Hold", name_placement='side')
+        self._hold.grid(row=4, column=0, columnspan=2) 
+        
+        # INSTRUCTIONS
+        self._instructionsFrame = wdgts.CustomFrame(master=self)
+        self._instructionsFrame.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST)
+        self._instructionsFrame.grid(row=0, column=1, sticky='e', pady=20, padx=20, rowspan=2)
+        
+        self._instructions = wdgts.CustomLabel(master=self._instructionsFrame, font=(FONT_NAME, 20),
+                                               text=COMBO_BUTTON_INSTRUCTIONS)
+        self._instructions.grid(row=0, column=0)
+        
+        self._keyMappingFrame = wdgts.CustomFrame(master=self._instructionsFrame)
+        self._keyMappingFrame.grid_columnconfigure(index=(0,1,2), weight=ONLY_THESE_COLUMNS_EXIST)
+        self._keyMappingFrame.grid(row=1, column=0, pady=50)
+        
+        row = 0
+        for buttonID in GAMEBOY_BUTTON_NAMES:
+            wdgts.CustomLabel(master=self._keyMappingFrame, text=GAMEBOY_BUTTON_NAMES[buttonID], font=(FONT_NAME,20)).grid(row=row, column=0, sticky='w', padx=10)
+            wdgts.CustomLabel(master=self._keyMappingFrame, text='-------------------->', font=(FONT_NAME,20)).grid(row=row, column=1, padx=10)
+            wdgts.CustomLabel(master=self._keyMappingFrame, text=buttonID, font=(FONT_NAME,20)).grid(row=row, column=2, sticky='w', padx=10)
+            row += 1
+        
+        
         
         
         

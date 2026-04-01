@@ -38,7 +38,7 @@ class Header(ctk.CTkFrame):
         self.configure(fg_color=colors.TWITCH_PURPLE)
         self.grid_columnconfigure(index=(0,1,2), weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
         
-        self._channelNameEntry = wdgts.NamedEntry(master=self, name="Twitch Channel")
+        self._channelNameEntry = wdgts.NamedEntry(master=self, name="Twitch Channel", name_placement='side')
         self._channelNameEntry.grid(row=0, column=0, sticky='w', padx=(20,0))
         
         self._titleLabel = ctk.CTkLabel(master=self, text="Ez Twitch Plays", font=(FONT_NAME,30))
@@ -62,10 +62,15 @@ class ShowKeyMappings(wdgts.CustomToplevel):
         self._title.grid(row=0, column=0, pady=20)
         
         self._mappings = wdgts.CustomFrame(master=self)
-        self._mappings.grid(row=1, column=0)
+        self._mappings.grid_columnconfigure(index=(0,1), weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
+        self._mappings.grid(row=1, column=0, sticky='news')
         row = 0
+        column = 0
         for mapping in DISPLAY_KEYBOARD_MAPPING:
             wdgts.CustomLabel(master=self._mappings, text=mapping, 
-                        font=(FONT_NAME, 20)).grid(row=row, column=0, sticky='w', pady=3)
+                        font=(FONT_NAME, 20)).grid(row=row, column=column, sticky='ew', pady=3)
             row += 1
+            if row == MAX_MAPPING_DISPLAY_ROWS:
+                row = 0
+                column += 1
             

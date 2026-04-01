@@ -5,9 +5,8 @@ from constants import *
 if not os.path.exists(dirs.CONFIGS):
     os.mkdir(dirs.CONFIGS)
 
-with open(files.CONTROL_SCHEMES, 'r+') as schemeFile:
-    contents = schemeFile.read()
-    if not contents:
+if not os.path.exists(files.CONTROL_SCHEMES):
+    with open(files.CONTROL_SCHEMES, 'w') as schemesFile:
         CONTROL_SCHEMES = {
             "Gameboy": {},
             "NES": {},
@@ -16,10 +15,20 @@ with open(files.CONTROL_SCHEMES, 'r+') as schemeFile:
             "PC": {},
             "N64": {}
         }
-        json.dump(obj=CONTROL_SCHEMES, fp=schemeFile)
-    else:
-        CONTROL_SCHEMES = json.loads(contents)
+        schemesFile.write(json.dumps(CONTROL_SCHEMES))
+else:
+    with open(files.CONTROL_SCHEMES, 'r') as schemesFile:
+        CONTROL_SCHEMES = json.loads(schemesFile.read())
 
+if not os.path.exists(files.SETTINGS):
+    with open(files.SETTINGS, 'w') as settingsFile:
+        SETTINGS = {
+            'twitch_channel': ''
+        }
+        settingsFile.write(json.dumps(SETTINGS))
+else:
+    with open(files.SETTINGS, 'r') as settingsFile:
+        SETTINGS = json.loads(settingsFile.read())
 
 with open(files.SETTINGS, 'r+') as settingsFile:
     contents = settingsFile.read()
