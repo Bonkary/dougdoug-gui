@@ -8,12 +8,31 @@ if not os.path.exists(dirs.CONFIGS):
 if not os.path.exists(files.CONTROL_SCHEMES):
     with open(files.CONTROL_SCHEMES, 'w') as schemesFile:
         CONTROL_SCHEMES = {
-            "Gameboy": {},
-            "NES": {},
-            "SNES": {},
-            "Gamecube": {},
-            "PC": {},
-            "N64": {}
+            "Gameboy": {
+                'combo_buttons':{},
+                'controls': {},
+                'presets': {},
+                },
+            "NES": {
+                'combo_buttons':{},
+                'controls': {}
+                },
+            "SNES": {
+                'combo_buttons':{},
+                'controls': {}
+                },
+            "Gamecube": {
+                'combo_buttons':{},
+                'controls': {}
+                },
+            "PC": {
+                'combo_buttons':{},
+                'controls': {}
+                },
+            "N64": {
+                'combo_buttons':{},
+                'controls': {}
+                }
         }
         schemesFile.write(json.dumps(CONTROL_SCHEMES))
 else:

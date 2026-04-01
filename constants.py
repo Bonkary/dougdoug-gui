@@ -45,19 +45,34 @@ DISPLAY_KEYBOARD_MAPPING = ['Single characters (a, 4, -, etc.)',
                             'left alt']
 MAX_MAPPING_DISPLAY_ROWS = (len(DISPLAY_KEYBOARD_MAPPING) // 2) + 2
 
-GAMEBOY_BUTTON_NAMES = {
-    'A': 'A Button',
-    'B': 'B Button',
-    'L': 'Left Bumper',
-    'R': 'Right Bumper',
-    'dpad_up': 'D-Pad Up',
-    'dpad_down': 'D-Pad Down',
-    'dpad_right': 'D-Pad Right',
-    'dpad_left': 'D-Pad Left',
-    'select': "Select",
-    'start': "Start"
+BUTTON_NAMES = {
+    'Gameboy': {
+        'A': 'A Button',
+        'B': 'B Button',
+        'L': 'Left Bumper',
+        'R': 'Right Bumper',
+        'dpad_up': 'D-Pad Up',
+        'dpad_down': 'D-Pad Down',
+        'dpad_right': 'D-Pad Right',
+        'dpad_left': 'D-Pad Left',
+        'select': "Select",
+        'start': "Start"
+    },
 }
 
+
+GAMEBOY_BUTTON_NAMES = {
+            'A': 'A Button',
+            'B': 'B Button',
+            'L': 'Left Bumper',
+            'R': 'Right Bumper',
+            'dpad_up': 'D-Pad Up',
+            'dpad_down': 'D-Pad Down',
+            'dpad_right': 'D-Pad Right',
+            'dpad_left': 'D-Pad Left',
+            'select': "Select",
+            'start': "Start"
+            }
 
 
 # CONFIGS
@@ -99,6 +114,8 @@ COMBO_BUTTON_INSTRUCTIONS = '\n'.join([
 @dataclass
 class colors:
     TWITCH_PURPLE = '#6441A5'
+    GREEN = 'green'
+    RED = 'red'
 
 @dataclass
 class dirs:

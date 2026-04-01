@@ -73,4 +73,14 @@ class ShowKeyMappings(wdgts.CustomToplevel):
             if row == MAX_MAPPING_DISPLAY_ROWS:
                 row = 0
                 column += 1
+    
+class Help(wdgts.CustomToplevel):
+    def __init__(self, app_root, **kwargs):
+        super().__init__(app_root, **kwargs)
+        self._appRoot = app_root
+        
+        self._titleLabel = wdgts.CustomLabel(master=self, text="DON'T FRET JULIET", font=(FONT_NAME,20))
+        self._titleLabel.grid(row=0, column=0)
+    
+    
             

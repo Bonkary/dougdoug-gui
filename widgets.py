@@ -118,6 +118,8 @@ class NamedEntry(CustomFrame):
     def set(self, value) -> None:
         self._entry.set(value)
 
+    def clear(self) -> None:
+        self._entry.clear()
         
         
 
