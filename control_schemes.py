@@ -132,7 +132,7 @@ class GameboyControls(wdgts.CustomFrame):
         }
         with open(files.CONTROL_SCHEMES, 'w') as controlSchemeFile:
             controlSchemeFile.write(json.dump(CONTROL_SCHEMES))
-    
+
     def load_control_scheme(self) -> None:
         try:
             self._AButton.set_controls(CONTROL_SCHEMES['Gameboy']['A'])
