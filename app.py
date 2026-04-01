@@ -31,6 +31,7 @@ class MainWindow(ctk.CTk):
             else:
                 self._keymappingsPopup = ShowKeyMappings(app_root=self)
 
+
 class Header(ctk.CTkFrame):
     def __init__(self, app_root: MainWindow):
         super().__init__(master=app_root)
@@ -43,7 +44,7 @@ class Header(ctk.CTkFrame):
         self._titleLabel = ctk.CTkLabel(master=self, text="Ez Twitch Plays", font=(FONT_NAME,30))
         self._titleLabel.grid(row=0, column=1)
         
-        self._showKeyMappings = wdgts.CustomButton(master=self, text="Show Keyboard Options", font=(FONT_NAME,20),
+        self._showKeyMappings = wdgts.CustomButton(master=self, text="Show Keyboard Keys", font=(FONT_NAME,20),
                                                    command=app_root.show_key_mappings)
         self._showKeyMappings.grid(row=0, column=2)
         
@@ -62,12 +63,9 @@ class ShowKeyMappings(wdgts.CustomToplevel):
         
         self._mappings = wdgts.CustomFrame(master=self)
         self._mappings.grid(row=1, column=0)
-        column = 0
         row = 0
         for mapping in DISPLAY_KEYBOARD_MAPPING:
             wdgts.CustomLabel(master=self._mappings, text=mapping, 
-                        font=(FONT_NAME, 20)).grid(row=row, column=column, sticky='w', pady=3)
+                        font=(FONT_NAME, 20)).grid(row=row, column=0, sticky='w', pady=3)
             row += 1
-            if row == MAX_MAPPING_DISPLAY_ROWS:
-                row = 0
-                column = 1
+            

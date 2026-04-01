@@ -41,7 +41,7 @@ class Twitch():
         
     def login(self) -> None:
         '''Creates a random username to login all sneaky-like'''
-        user = 'justinfan%i' % random.randint(10000, 99999)
+        user = 'justinfan%i' % random.randint(10_000, 99_999)
         self._socket.send(('PASS asdf\r\nNICK %s\r\n' % user).encode())
         self._socket.settimeout(1.0/60.0)
         self._loginTimestamp = time.time()

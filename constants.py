@@ -6,12 +6,22 @@ from pathlib import Path
 FONT_NAME = 'helvetica'
 MAIN_WINDOW_SIZE = '1500x900'
 COMBINATIONS_WINDOW_SIZE = '1000x800'
-KEYMAPPING_WINDOW_SIZE = '450x900'
+KEYMAPPING_WINDOW_SIZE = '500x1100'
+BUTTON_COMBO_WINDOW_SIZE = '600x400'
+MAX_MAPPING_DISPLAY_ROWS = 28
 
 # CONFIGS
 ONLY_THESE_COLUMNS_EXIST = 1
 EQUAL_SIZED_COLUMNS = 'column'
 EQUAL_SIZED_ROWS = 'rows'
+
+# CONSOLE NAMES
+GAMEBOY = 'Gameboy'
+SNES = 'SNES'
+N64 = 'N64'
+NES = 'NES'
+GAMECUBE = 'Gamecube'
+PC = 'PC'
 
 # MISC
 AVAILABLE_CONSOLES = ['Gameboy', 'N64', 'SNES', 'NES', 'Gamecube', 'PC']
@@ -20,7 +30,7 @@ MAX_QUEUE_LENGTH = 20
 MAX_WORKERS = 100
 DISPLAY_KEYBOARD_MAPPING = ['Any single character key (a, b, 1, ?, -, :, etc.)',
                             'F# (# = number)',
-                            'numpad# (# = number)'
+                            'numpad# (# = number)',
                             'escape',
                             'print screen',
                             'scroll lock',
@@ -45,9 +55,21 @@ DISPLAY_KEYBOARD_MAPPING = ['Any single character key (a, b, 1, ?, -, :, etc.)',
                             'right ctrl',
                             'left ctrl',
                             'windows key',
+                            'alt',
                             'right alt',
-                            'left alt',]
-MAX_MAPPING_DISPLAY_ROWS = 28
+                            'left alt']
+GAMEBOY_BUTTONS_DISPLAY = {
+    'A': 'A Button',
+    'B': 'B Button',
+    'L': 'Left Bumper',
+    'R': 'Right Bumper',
+    'dpad_up': 'D-Pad Up',
+    'dpad_down': 'D-Pad Down',
+    'dpad_right': 'D-Pad Right',
+    'dpad_left': 'D-Pad Left',
+    'select': "Select",
+    'start': "Start"
+}
 
 @dataclass
 class colors:

@@ -45,8 +45,9 @@ class CustomLabel(ctk.CTkLabel):
         self.grid_remove()
 
 class CustomToplevel(ctk.CTkToplevel):
-    def __init__(self, app_root, **kwargs):
+    def __init__(self, app_root: ctk.CTk, **kwargs):
         super().__init__(master=app_root, **kwargs)
+        self._appRoot = app_root
         self.configure(fg_color=colors.TWITCH_PURPLE)
         self.wm_transient(app_root)
         self.focus()
@@ -79,32 +80,9 @@ class ClearableEntry(CustomFrame):
     def clear(self) -> None:
         self._entry.delete(0, ctk.END)
 
-class ControlAssignment(CustomFrame):
-    def __init__(self, master, action: str, **kwargs):
-        super().__init__(master, **kwargs)
-        self._action = action
-        self.grid_columnconfigure(index=(0), weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
-        
-        self._keyLabel = ctk.CTkLabel(master=self, text=action, font=(FONT_NAME, 30), width=80)
-        self._keyLabel.grid(row=0, column=0, padx=(20,0))
-        
-        self._keyboardEntry = NamedEntry(master=self, name="Keyboard")
-        self._keyboardEntry.grid(row=1, column=0, pady=2, sticky='ew')
-        
-        self._pressEntry = NamedEntry(master=self, name="Chat Press")
-        self._pressEntry.grid(row=2, column=0, pady=2, sticky='ew')
-        
-        self._holdEntry = NamedEntry(master=self, name="Chat Hold")
-        self._holdEntry.grid(row=3, column=0, pady=2, sticky='ew')
-        
-        
-    def get_controls(self) -> dict:
-        return {
-            'action': self._action,
-            'press': self._pressEntry.get(),
-            'hold': self._pressEntry.get()
-        }
-   
+    def set(self, value) -> None:
+        self._entry.insert(0, value)
+
 class NamedEntry(CustomFrame):
     def __init__(self, master, name: str, **kwargs):
         super().__init__(master=master, **kwargs)
@@ -121,8 +99,12 @@ class NamedEntry(CustomFrame):
         
     def get(self) -> str:
         return self._entry.get().strip()
+    
+    def set(self, value) -> None:
+        self._entry.set(value)
 
-
+        
+        
 
 
         
