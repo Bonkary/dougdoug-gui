@@ -2,8 +2,9 @@ import customtkinter as ctk
 import widgets as wdgts
 import time
 import threading
+import json
 from constants import *
-from configurations import *
+import configurations as cfg
 
 class ControlAssignmentPanel(wdgts.CustomFrame):
     def __init__(self, app):
@@ -38,7 +39,7 @@ class ControlAssignmentPanel(wdgts.CustomFrame):
                 pass
     
     def save_control_scheme(self) -> None:
-        SETTINGS['twitch_channel'] = self._app.get_channel_name()
+        cfg.SETTINGS['twitch_channel'] = self._app.get_channel_name()
         self._activeScheme.save_control_scheme()
 
     def load_control_scheme(self) -> None:
@@ -57,10 +58,10 @@ class ControlAssignment(wdgts.CustomFrame):
         self._keyboardEntry = wdgts.NamedEntry(master=self, name="Keyboard", name_placement='side')
         self._keyboardEntry.grid(row=1, column=0, pady=2, sticky='ew')
         
-        self._pressEntry = wdgts.NamedEntry(master=self, name="Press Button", name_placement='side')
+        self._pressEntry = wdgts.NamedEntry(master=self, name="Press Command", name_placement='side')
         self._pressEntry.grid(row=2, column=0, pady=2, sticky='ew')
         
-        self._holdEntry = wdgts.NamedEntry(master=self, name="Hold Button", name_placement='side')
+        self._holdEntry = wdgts.NamedEntry(master=self, name="Hold Command", name_placement='side')
         self._holdEntry.grid(row=3, column=0, pady=2, sticky='ew')
          
     def get_controls(self) -> dict:
@@ -120,7 +121,7 @@ class GameboyControls(wdgts.CustomFrame):
         self.load_control_scheme()
 
     def save_control_scheme(self) -> None:
-        CONTROL_SCHEMES['Gameboy'] = {
+        cfg.CONTROL_SCHEMES['Gameboy'] = {
             'A': self._AButton.get_controls(),
             'B': self._BButton.get_controls(),
             'L': self._LButton.get_controls(),
@@ -133,20 +134,20 @@ class GameboyControls(wdgts.CustomFrame):
             'start': self._startButton.get_controls()
         }
         with open(files.CONTROL_SCHEMES, 'w') as controlSchemeFile:
-            controlSchemeFile.write(json.dump(CONTROL_SCHEMES))
+            controlSchemeFile.write(json.dump(cfg.CONTROL_SCHEMES))
 
     def load_control_scheme(self) -> None:
         try:
-            self._AButton.set_controls(CONTROL_SCHEMES['Gameboy']['A'])
-            self._BButton.set_controls(CONTROL_SCHEMES['Gameboy']['B'])
-            self._LButton.set_controls(CONTROL_SCHEMES['Gameboy']['L'])
-            self._RButton.set_controls(CONTROL_SCHEMES['Gameboy']['R'])
-            self._DPadLeft.set_controls(CONTROL_SCHEMES['Gameboy']['dpad_left'])
-            self._DPadUp.set_controls(CONTROL_SCHEMES['Gameboy']['dpad_up'])
-            self._DPadRight.set_controls(CONTROL_SCHEMES['Gameboy']['dpad_right'])
-            self._DPadDown.set_controls(CONTROL_SCHEMES['Gameboy']['dpad_down'])
-            self._selectButton.set_controls(CONTROL_SCHEMES['Gameboy']['select'])
-            self._startButton.set_controls(CONTROL_SCHEMES['Gameboy']['start'])
+            self._AButton.set_controls(cfg.CONTROL_SCHEMES['Gameboy']['A'])
+            self._BButton.set_controls(cfg.CONTROL_SCHEMES['Gameboy']['B'])
+            self._LButton.set_controls(cfg.CONTROL_SCHEMES['Gameboy']['L'])
+            self._RButton.set_controls(cfg.CONTROL_SCHEMES['Gameboy']['R'])
+            self._DPadLeft.set_controls(cfg.CONTROL_SCHEMES['Gameboy']['dpad_left'])
+            self._DPadUp.set_controls(cfg.CONTROL_SCHEMES['Gameboy']['dpad_up'])
+            self._DPadRight.set_controls(cfg.CONTROL_SCHEMES['Gameboy']['dpad_right'])
+            self._DPadDown.set_controls(cfg.CONTROL_SCHEMES['Gameboy']['dpad_down'])
+            self._selectButton.set_controls(cfg.CONTROL_SCHEMES['Gameboy']['select'])
+            self._startButton.set_controls(cfg.CONTROL_SCHEMES['Gameboy']['start'])
         except KeyError:
             pass
 
@@ -162,29 +163,52 @@ class ComboButtonConfig(wdgts.CustomToplevel):
         self.grid_columnconfigure(index=(0,1), weight=ONLY_THESE_COLUMNS_EXIST)
         
         # CREATE COMBOS
-        self._createCombosFrame = wdgts.CustomFrame(master=self)
+        self._createCombosFrame = wdgts.CustomFrame(master=self, border_width=2, border_color='black')
         self._createCombosFrame.grid_columnconfigure(index=(0,1), weight=ONLY_THESE_COLUMNS_EXIST)
-        self._createCombosFrame.grid(row=0, column=0, sticky='news', pady=20, padx=20)
+        self._createCombosFrame.grid(row=0, column=0, sticky='news', pady=70, padx=20)
         
         self._title = wdgts.CustomLabel(master=self._createCombosFrame, text='Create Button Combos', font=(FONT_NAME,30))
         self._title.grid(row=0, column=0, columnspan=2)
         
-        #  ENTRIES
         self._key1Entry = wdgts.NamedEntry(master=self._createCombosFrame, name="Key 1", name_placement='top')
         self._key1Entry.grid(row=2, column=0, pady=5, sticky='e')
         
         self._key2Entry = wdgts.NamedEntry(master=self._createCombosFrame, name='Key 2', name_placement='top')
         self._key2Entry.grid(row=2, column=1, pady=5, sticky='w')
         
-        self._pressEntry = wdgts.NamedEntry(master=self._createCombosFrame, name='Press Button', name_placement='side')
+        self._pressEntry = wdgts.NamedEntry(master=self._createCombosFrame, name='Press Command', name_placement='side')
         self._pressEntry.grid(row=3, column=0, pady=10, columnspan=2)
         
-        self._holdEntry = wdgts.NamedEntry(master=self._createCombosFrame, name="Hold Button", name_placement='side')
+        self._holdEntry = wdgts.NamedEntry(master=self._createCombosFrame, name="Hold Command", name_placement='side')
         self._holdEntry.grid(row=4, column=0, columnspan=2)
         
         self._addButton = wdgts.CustomButton(master=self._createCombosFrame, text='Add', 
                                              command=self.add, font=(FONT_NAME,20))
         self._addButton.grid(row=5, column=0, columnspan=2, pady=20)
+        
+        # MY BUTTON COMBOS
+        self._myCombosFrame = wdgts.CustomFrame(master=self)
+        self._myCombosFrame.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
+        self._myCombosFrame.grid(row=1, column=0)
+        
+        self._myCombosLabel = wdgts.CustomLabel(master=self._myCombosFrame, text='My Combos', font=(FONT_NAME,25))
+        self._myCombosLabel.grid(row=0, column=0, sticky='n', pady=(0,20))
+        
+        self._comboNamesFrame = wdgts.CustomFrame(master=self._myCombosFrame)
+        self._comboNamesFrame.grid_columnconfigure(index=(0,1), weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
+        self._comboNamesFrame.grid(row=1, column=0, sticky='news')
+        
+        for comboID in cfg.CONTROL_SCHEMES[self._console]['combo_buttons']:
+            combo = cfg.CONTROL_SCHEMES[self._console]['combo_buttons'][comboID]
+            ComboInfo(master=self._comboNamesFrame, combo=combo, console=self._console)\
+                .grid(row=self._nextComboRow, 
+                      column=self._nextComboColumn, 
+                      pady=10, padx=60, sticky='w')
+                
+            self._nextComboRow += 1
+            if self._nextComboRow == 3:
+                self._nextComboRow = 0
+                self._nextComboColumn = 1
         
         # INSTRUCTIONS
         self._instructionsFrame = wdgts.CustomFrame(master=self)
@@ -200,63 +224,30 @@ class ComboButtonConfig(wdgts.CustomToplevel):
         self._keyMappingFrame.grid(row=1, column=0, pady=50)
         
         buttonNamesRow = 0
-        for buttonID in GAMEBOY_BUTTON_NAMES:
-            wdgts.CustomLabel(master=self._keyMappingFrame, text=GAMEBOY_BUTTON_NAMES[buttonID], font=(FONT_NAME,20)).grid(row=buttonNamesRow, column=0, sticky='w', padx=10)
-            wdgts.CustomLabel(master=self._keyMappingFrame, text='-------------------->', font=(FONT_NAME,20)).grid(row=buttonNamesRow, column=1, padx=10)
-            wdgts.CustomLabel(master=self._keyMappingFrame, text=buttonID, font=(FONT_NAME,20)).grid(row=buttonNamesRow, column=2, sticky='w', padx=10)
+        for buttonID in BUTTON_ALIASES[self._console]:
+            wdgts.CustomLabel(master=self._keyMappingFrame, text=BUTTON_ALIASES[self._console][buttonID], font=(FONT_NAME,20))\
+                .grid(row=buttonNamesRow, column=0, sticky='w', padx=10, pady=5)
+            wdgts.CustomLabel(master=self._keyMappingFrame, text='-------------------->', font=(FONT_NAME,20))\
+                .grid(row=buttonNamesRow, column=1, padx=10)
+            wdgts.CustomLabel(master=self._keyMappingFrame, text=buttonID, font=(FONT_NAME,20))\
+                .grid(row=buttonNamesRow, column=2, sticky='w', padx=10)
             buttonNamesRow += 1
         
-        # MY BUTTON COMBOS
-        self._myCombosFrame = wdgts.CustomFrame(master=self)
-        self._myCombosFrame.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
-        self._myCombosFrame.grid(row=1, column=0)
-        
-        myCombosFont = ctk.CTkFont(family=FONT_NAME, underline=True, size=30)
-        self._myCombosLabel = wdgts.CustomLabel(master=self._myCombosFrame, text='My Combos', font=myCombosFont)
-        self._myCombosLabel.grid(row=0, column=0, sticky='n')
-        
-        self._comboNamesFrame = wdgts.CustomFrame(master=self._myCombosFrame)
-        self._comboNamesFrame.grid_columnconfigure(index=(0,1), weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
-        self._comboNamesFrame.grid(row=1, column=0, sticky='news')
-        
-        comboFont = ctk.CTkFont(family=FONT_NAME, weight='bold', size=20)
-        for comboID in CONTROL_SCHEMES[self._console]['combo_buttons']:
-            combo = CONTROL_SCHEMES[self._console]['combo_buttons'][comboID]
-            comboFrame = wdgts.CustomFrame(master=self._comboNamesFrame)
-            comboFrame.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST)
-            comboFrame.grid(row=self._nextComboRow, column=self._nextComboColumn, padx=5, pady=5, sticky='w')
-            
-            button1Name = BUTTON_NAMES[self._console][combo['key1']]
-            button2Name = BUTTON_NAMES[self._console][combo['key2']]
-            wdgts.CustomLabel(master=comboFrame, text=f'{button1Name} + {button2Name}', font=comboFont).grid(row=0, column=0)
-            wdgts.CustomLabel(master=comboFrame, text=f"Press: {combo['press']}", font=(FONT_NAME,15)).grid(row=1, column=0, padx=(20,0), sticky='w')
-            wdgts.CustomLabel(master=comboFrame, text=f"Hold: {combo['hold']}", font=(FONT_NAME,15)).grid(row=2, column=0, padx=(20,0), sticky='w')
-            
-            self._nextComboRow += 1
-            if self._nextComboRow > 3:
-                self._nextComboRow = 0
-                self._nextComboColumn = 1
-        
     def add(self) -> None:
-        def success(label: wdgts.CustomLabel):
-            label.show()
-            time.sleep(2)
-            label.hide()
-            
         key1 = self._key1Entry.get()
         key2 = self._key2Entry.get()
         press = self._pressEntry.get()
         hold = self._pressEntry.get()
         
-        newID = len(CONTROL_SCHEMES[self._console]['combo_buttons']) + 1
-        CONTROL_SCHEMES[self._console]['combo_buttons'][newID] = {
+        newID = len(cfg.CONTROL_SCHEMES[self._console]['combo_buttons']) + 1
+        cfg.CONTROL_SCHEMES[self._console]['combo_buttons'][newID] = {
             "key1": key1,
             "key2": key2,
             "press": press,
             "hold": hold
         }
         with open(files.CONTROL_SCHEMES, 'w') as schemesFile:
-            schemesFile.write(json.dumps(CONTROL_SCHEMES))
+            schemesFile.write(json.dumps(cfg.CONTROL_SCHEMES))
         self._key1Entry.clear()
         self._key2Entry.clear()
         self._pressEntry.clear()
@@ -264,4 +255,24 @@ class ComboButtonConfig(wdgts.CustomToplevel):
         
         newFrame = wdgts.CustomFrame(master=self._comboNamesFrame)
         newFrame.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST)
+        # newFrame.grid(row=self._nextComboRow, column=self._nextComboColumn, padx=5, pady=5, sticky='w')
+
+class ComboInfo(wdgts.CustomFrame):
+    def __init__(self, master, combo: dict, console: str):
+        super().__init__(master)
+        self.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST)
         
+        comboFont = ctk.CTkFont(family=FONT_NAME, weight='bold', size=20)
+        button1Name = BUTTON_ALIASES[console][combo['key1']]
+        button2Name = BUTTON_ALIASES[console][combo['key2']] 
+        self._comboName = wdgts.CustomLabel(master=self, text=f'{button1Name} + {button2Name}', font=comboFont)
+        self._comboName.grid(row=0, column=0)
+        
+        self._pressCmd = wdgts.CustomLabel(master=self, text=f'Press: {combo["press"]}', font=(FONT_NAME,15))
+        self._pressCmd.grid(row=1, column=0, padx=(20,0), sticky='w')
+        
+        self._holdCmd = wdgts.CustomLabel(master=self, text=f'Hold: {combo["hold"]}', font=(FONT_NAME,15))
+        self._holdCmd.grid(row=2, column=0, padx=(20,0), sticky='w')
+        
+
+

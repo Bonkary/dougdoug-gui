@@ -2,6 +2,11 @@ import os
 import json
 from constants import *
 
+def update_settings_file() -> None:
+    with open(files.SETTINGS, 'w') as settingsFile:
+        settingsFile.write(json.dumps(SETTINGS))
+
+
 if not os.path.exists(dirs.CONFIGS):
     os.mkdir(dirs.CONFIGS)
 
@@ -42,7 +47,8 @@ else:
 if not os.path.exists(files.SETTINGS):
     with open(files.SETTINGS, 'w') as settingsFile:
         SETTINGS = {
-            'twitch_channel': ''
+            'twitch_channel': '',
+            'seen_tutorial': False
         }
         settingsFile.write(json.dumps(SETTINGS))
 else:
