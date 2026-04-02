@@ -1,67 +1,51 @@
 import os
 import json
+import sys
 from constants import *
+
+def write_empty_schemes_file() -> None:
+    with open(files.CONTROL_SCHEMES, 'w') as newFile:
+        newFile.write(json.dumps(EMPTY_CONTROL_SCHEMES))
+
+def write_empty_settings_file() -> None:
+    with open(files.SETTINGS, 'w') as newFile:
+        newFile.write(json.dumps(EMPTY_SETTINGS))
 
 def update_settings_file() -> None:
     with open(files.SETTINGS, 'w') as settingsFile:
         settingsFile.write(json.dumps(SETTINGS))
 
+def update_control_schemes_file() -> None:
+    with open(files.CONTROL_SCHEMES, 'w') as controlSchemeFile:
+        controlSchemeFile.write(json.dumps(CONTROL_SCHEMES))
+
 
 if not os.path.exists(dirs.CONFIGS):
     os.mkdir(dirs.CONFIGS)
 
-if not os.path.exists(files.CONTROL_SCHEMES):
-    with open(files.CONTROL_SCHEMES, 'w') as schemesFile:
-        CONTROL_SCHEMES = {
-            "Gameboy": {
-                'combo_buttons':{},
-                'controls': {},
-                'presets': {},
-                },
-            "NES": {
-                'combo_buttons':{},
-                'controls': {}
-                },
-            "SNES": {
-                'combo_buttons':{},
-                'controls': {}
-                },
-            "Gamecube": {
-                'combo_buttons':{},
-                'controls': {}
-                },
-            "PC": {
-                'combo_buttons':{},
-                'controls': {}
-                },
-            "N64": {
-                'combo_buttons':{},
-                'controls': {}
-                }
-        }
-        schemesFile.write(json.dumps(CONTROL_SCHEMES))
-else:
+try:
     with open(files.CONTROL_SCHEMES, 'r') as schemesFile:
-        CONTROL_SCHEMES = json.loads(schemesFile.read())
+        contents = schemesFile.read()
+        if not contents:
+            CONTROL_SCHEMES = EMPTY_CONTROL_SCHEMES
+            write_empty_schemes_file()
+        else:
+            CONTROL_SCHEMES = json.loads(contents)
+except FileNotFoundError:
+    CONTROL_SCHEMES = EMPTY_CONTROL_SCHEMES
+    write_empty_schemes_file()
 
-if not os.path.exists(files.SETTINGS):
-    with open(files.SETTINGS, 'w') as settingsFile:
-        SETTINGS = {
-            'twitch_channel': '',
-            'seen_tutorial': False
-        }
-        settingsFile.write(json.dumps(SETTINGS))
-else:
+try:
     with open(files.SETTINGS, 'r') as settingsFile:
-        SETTINGS = json.loads(settingsFile.read())
+        contents = settingsFile.read()
+        if not contents:
+            SETTINGS = EMPTY_SETTINGS
+            write_empty_settings_file()
+        else:
+            SETTINGS = json.loads(contents)
+except FileNotFoundError:
+    SETTINGS = EMPTY_SETTINGS
+    write_empty_settings_file()
 
-with open(files.SETTINGS, 'r+') as settingsFile:
-    contents = settingsFile.read()
-    if not contents:
-        SETTINGS = {
-            'twitch_channel': ''
-        }
-        settingsFile.write(json.dumps(SETTINGS))
-    else:
-        SETTINGS = json.loads(contents)
-    
+
+

@@ -13,9 +13,10 @@ import traceback
 MAX_TIME_TO_WAIT_FOR_LOGIN = 3
 YOUTUBE_FETCH_INTERVAL = 1
 REGEX_PATTERN = b'^(?::(?:([^ !\r\n]+)![^ \r\n]*|[^ \r\n]*) )?([^ \r\n]+)(?: ([^:\r\n]*))?(?: :([^\r\n]*))?\r\n'
-HOST = 'irc.chat.twitch.tv'
-PORT = 6667
+IRC_HOST = 'irc.chat.twitch.tv'
+IRC_PORT = 6667
 NO_NEW_MESSAGE_TIMEOUT = 5
+IRC_CMDS_TO_IGNORE = ['JOIN', '001', '002', '003', '004', '375', '372', '376', '353', '366']
 
 class Twitch():
     '''
@@ -36,7 +37,7 @@ class Twitch():
     def connect(self) -> None:
         '''Connect to the socket and login to Twitch'''
         print("Connecting to Twitch...")
-        self._socket.connect((HOST, PORT))
+        self._socket.connect((IRC_HOST, IRC_PORT))
         self.login()
         
     def login(self) -> None:
@@ -65,7 +66,6 @@ class Twitch():
     
     def get_messages(self) -> list[dict]:
         '''Takes the IRC messages and translates the username and message to text'''
-        cmdToIgnore = ['JOIN', '001', '002', '003', '004', '375', '372', '376', '353', '366']
         messages = []
         ircMessages = self.receive_irc_data()
         for ircMessage in ircMessages:
@@ -79,7 +79,7 @@ class Twitch():
                 self._socket.send(b'PONG :tmi.twitch.tv\r\n')
             elif cmd == 'NOTICE':
                 print('Server notice:', ircMessage['params'], ircMessage['trailing'])
-            elif cmd in cmdToIgnore:
+            elif cmd in IRC_CMDS_TO_IGNORE:
                 continue
             else:
                 print(f"Unhandled IRC message: {ircMessage}")

@@ -33,7 +33,7 @@ class CustomButton(ctk.CTkButton):
 class CustomLabel(ctk.CTkLabel):
     def __init__(self, master, **kwargs):
         super().__init__(master=master, **kwargs)
-        self.configure(fg_color=colors.TWITCH_PURPLE)
+        self.configure(fg_color=colors.TWITCH_PURPLE, text_color=colors.DEFAULT_TEXT)
         self.isHidden = False
     
     def show(self) -> None:
@@ -51,6 +51,30 @@ class CustomToplevel(ctk.CTkToplevel):
         self.configure(fg_color=colors.TWITCH_PURPLE)
         self.wm_transient(app_root)
         self.focus()
+
+class CustomComboBox(ctk.CTkComboBox):
+    def __init__(self, master, values: list[str] = [], **kwargs):
+        super().__init__(master=master, **kwargs)
+        self.isHidden = False
+        self._values = values
+        self.configure(values=self._values)
+        
+    def hide(self) -> None:
+        self.isHidden = True
+        self.grid_remove()
+        
+    def show(self) -> None:
+        self.isHidden = False
+        self.grid()
+
+    def fill(self, values: list[str]) -> None:
+        self.configure(values=values)
+    
+    def add(self, value: str) -> None:
+        self._values.append(value)
+        self.configure(values=self._values)
+    
+
 
 class ToggleableButton(CustomButton):
     def __init__(self, master, **kwargs):
@@ -106,7 +130,7 @@ class NamedEntry(CustomFrame):
         self.configure(fg_color=colors.TWITCH_PURPLE)
         self.grid_columnconfigure(index=configureColumns, weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
         
-        self._nameLabel = ctk.CTkLabel(master=self, text=name, font=(FONT_NAME,20), width=5)
+        self._nameLabel = CustomLabel(master=self, text=name, font=(FONT_NAME,20), width=5)
         self._nameLabel.grid(row=0, column=0, sticky=nameSticky, padx=(0,10))
         
         self._entry = ClearableEntry(master=self, height=10)

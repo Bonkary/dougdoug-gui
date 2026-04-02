@@ -20,7 +20,7 @@ class AppRoot(ctk.CTk):
         self._header.grid(row=0, column=0, pady=(20,0), sticky='ew')
         
         self._activeProgram = TwitchPlays(app_root=self)
-        self._activeProgram.grid(row=1, column=0, pady=(10,0))
+        self._activeProgram.grid(row=1, column=0, pady=(60,0))
         
     def get_channel_name(self) -> None:
         return self._header._channelNameEntry.get().strip()
@@ -41,21 +41,26 @@ class Header(ctk.CTkFrame):
     def __init__(self, app_root: AppRoot):
         super().__init__(master=app_root)
         self.configure(fg_color=colors.TWITCH_PURPLE)
-        self.grid_columnconfigure(index=(0,1,2), weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
+        self.grid_columnconfigure(index=(0,1,2), weight=FIXED_SIZE, uniform=EQUAL_SIZED_COLUMNS)
         
         self._channelNameEntry = wdgts.NamedEntry(master=self, name="Twitch Channel", name_placement='side')
         self._channelNameEntry.grid(row=0, column=0, sticky='w', padx=(20,0))
         
-        self._titleLabel = ctk.CTkLabel(master=self, text="Ez Twitch Plays", font=(FONT_NAME,30))
-        self._titleLabel.grid(row=0, column=1)
+        self._titleLabel = wdgts.CustomLabel(master=self, text="Ez Twitch Plays", font=(FONT_NAME,30))
+        self._titleLabel.grid(row=0, column=1, sticky='ew')
         
-        self._tutorialButton = wdgts.CustomButton(master=self, text='Tutorial', font=(FONT_NAME,20),
-                                                  command=app_root.show_tutorial)
-        self._tutorialButton.grid(row=0, column=2)
         
-        self._showKeyMappings = wdgts.CustomButton(master=self, text="Show Keyboard Keys", font=(FONT_NAME,20),
-                                                   command=app_root.show_key_mappings)
-        self._showKeyMappings.grid(row=1, column=2)
+        self._buttonsFrame = wdgts.CustomFrame(master=self)
+        self._buttonsFrame.grid_columnconfigure(index=(0,1), weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
+        self._buttonsFrame.grid(row=0, column=2, columnspan=2)
+        
+        self._tutorialButton = wdgts.CustomButton(master=self._buttonsFrame, text='Tutorial', font=(FONT_NAME,20),
+                                                  command=app_root.show_tutorial, width=200)
+        self._tutorialButton.grid(row=0, column=0, padx=(0,10))
+        
+        self._showKeyMappings = wdgts.CustomButton(master=self._buttonsFrame, text="Keyboard Keys", font=(FONT_NAME,20),
+                                                   command=app_root.show_key_mappings, width=200)
+        self._showKeyMappings.grid(row=0, column=1, padx=(10,0))
         
 class ShowKeyMappings(wdgts.CustomToplevel):
     def __init__(self, app_root: AppRoot, **kwargs):
@@ -99,12 +104,12 @@ class Tutorial(wdgts.CustomToplevel):
         
         self._labels: list[wdgts.CustomLabel] = []
         self._rewatchLabels = []
-        for line in TUTORIAL_TEXT:
+        for line in text.TUTORIAL_TEXT:
              self._labels.append(
                 wdgts.CustomLabel(master=self, text=line, font=(FONT_NAME,20))
             )
              
-        for line in REWATCH_TUTORIAL_TEXT:
+        for line in text.REWATCH_TUTORIAL_TEXT:
             self._rewatchLabels.append(
                 wdgts.CustomLabel(master=self, text=line, font=(FONT_NAME,20))
             )
