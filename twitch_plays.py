@@ -10,11 +10,11 @@ class TwitchPlays(wdgts.CustomFrame):
         super().__init__(master=app_root)
         self._appRoot = app_root
         self.configure(fg_color=colors.TWITCH_PURPLE)
-        self.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST)
+        self.grid_columnconfigure(index=0, weight=gui.ONLY_THESE_COLUMNS_EXIST)
         
         self._selectorsFrame = wdgts.CustomFrame(master=self)
-        self._selectorsFrame.grid_columnconfigure(index=(0,1,2), weight=ONLY_THESE_COLUMNS_EXIST,
-                                                  uniform=EQUAL_SIZED_COLUMNS)
+        self._selectorsFrame.grid_columnconfigure(index=(0,1,2), weight=gui.ONLY_THESE_COLUMNS_EXIST,
+                                                  uniform=gui.EQUAL_SIZED_COLUMNS)
         self._selectorsFrame.grid(row=0, column=0, sticky='ew', pady=(0,20))
         
         self._consoleSelector = ConsoleSelector(master=self._selectorsFrame, app=self)
@@ -27,16 +27,16 @@ class TwitchPlays(wdgts.CustomFrame):
         self._controlAssignmentFrame = ControlAssignmentFrame(app=self)
         self._controlAssignmentFrame.grid(row=2, column=0)
         
-        self._alertLabel = wdgts.CustomLabel(master=self, text='', text_color='red', font=(FONT_NAME, 20))
+        self._alertLabel = wdgts.CustomLabel(master=self, text='', text_color='red', font=(gui.FONT_NAME, 20))
         self._alertLabel.grid(row=3, column=0, pady=(5,0))
         
         self._startButton = wdgts.ToggleableButton(master=self, text='Start Playing!', command=self.start_playing,
-                                                          width=500, height=50, font=(FONT_NAME,25))
+                                                          width=500, height=50, font=(gui.FONT_NAME,25))
         self._startButton.grid(row=4, column=0, pady=(10,0))
         self._startButton.hide()
         
         self._pauseButton = wdgts.ToggleableButton(master=self, text='Pause Playing...', command=self.stop_playing,
-                                                         width=500, height=50, font=(FONT_NAME,25), 
+                                                         width=500, height=50, font=(gui.FONT_NAME,25), 
                                                          fg_color='red')
         self._pauseButton.grid(row=4, column=0, pady=(10,0))
         self._pauseButton.hide()
@@ -83,17 +83,17 @@ class PresetSelector(wdgts.CustomFrame):
         super().__init__(master=master, **kwargs)
         self._app = app
         self.configure(fg_color=colors.TWITCH_PURPLE)
-        self.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST)
-        self._label = wdgts.CustomLabel(master=self, text="Select Preset", font=(FONT_NAME, 20))
+        self.grid_columnconfigure(index=0, weight=gui.ONLY_THESE_COLUMNS_EXIST)
+        self._label = wdgts.CustomLabel(master=self, text="Select Preset", font=(gui.FONT_NAME, 20))
         self._label.grid(row=0, column=0, pady=(0,10))
         
         self._dropdown = wdgts.CustomComboBox(master=self, values=[], 
-                                              width=230, height=40, font=(FONT_NAME, 20), 
+                                              width=230, height=40, font=(gui.FONT_NAME, 20), 
                                               state='readonly', command=self._app.change_preset)
         self._dropdown.grid(row=1, column=0)
         
     def set_console(self, console: str) -> None:
-        values = cfg.CONTROL_SCHEMES[console]['presets']
+        values = cfg.CONTROL_SCHEMES[console][PRESETS]
         self._dropdown.fill(values)
     
     def add(self, value: str) -> None:
@@ -105,12 +105,12 @@ class ConsoleSelector(wdgts.CustomFrame):
         super().__init__(master=master)
         self._app = app
         self.configure(fg_color=colors.TWITCH_PURPLE)
-        self.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST)
-        self._label = wdgts.CustomLabel(master=self, text="Select Console", font=(FONT_NAME, 20))
+        self.grid_columnconfigure(index=0, weight=gui.ONLY_THESE_COLUMNS_EXIST)
+        self._label = wdgts.CustomLabel(master=self, text="Select Console", font=(gui.FONT_NAME, 20))
         self._label.grid(row=0, column=0, pady=(0,10))
         
-        self._dropdown = wdgts.CustomComboBox(master=self, values=AVAILABLE_CONSOLES, 
-                                              width=230, height=40, font=(FONT_NAME, 20), 
+        self._dropdown = wdgts.CustomComboBox(master=self, values=consoles.AVAILABLE_CONSOLES, 
+                                              width=230, height=40, font=(gui.FONT_NAME, 20), 
                                               state='readonly', command=self._app.change_console)
         self._dropdown.grid(row=1, column=0)
         

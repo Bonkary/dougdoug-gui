@@ -1,55 +1,19 @@
 from dataclasses import dataclass
 import os
 from pathlib import Path
+from pydirectinput import KEYBOARD_MAPPING
 
-FONT_NAME = 'helvetica'
+# COMMON STRINGS
+GAMEBOY = 'Gameboy'
+SNES = 'SNES'
+N64 = 'N64'
+NES = 'NES'
+GAMECUBE = 'Gamecube'
+PC = 'PC'
+COMBO_BUTTONS = 'combo_buttons'
+PRESETS = 'presets'
 
-# WINDOW SIZES
-MAIN_WINDOW_SIZE = '1500x900'
-COMBINATIONS_WINDOW_SIZE = '1000x800'
-KEYMAPPING_WINDOW_SIZE = '600x700'
-BUTTON_COMBO_WINDOW_SIZE = '1400x850'
-TUTORIAL_WINDOW_SIZE = '1500x800'
-NAME_PRESET_POPUP_WINDOW_SIZE = '300x300'
-
-DISPLAY_KEYBOARD_MAPPING = [
-    'Single characters (a, 4, -, etc.)',
-    'F# (# = number)',
-    'numpad# (# = number)',
-    'left arrow',
-    'right arrow',
-    'up arrow',
-    'down arrow',
-    'escape',
-    'prntscrn',
-    'scrolllock',
-    'backspace',
-    'insert',
-    'home',
-    'pageup',
-    'pagedown',
-    'numlock',
-    'clear',
-    'tab',
-    'space',
-    'delete',
-    'end',
-    'capslock',
-    'enter',
-    'return',
-    'shift',
-    'right shift',
-    'left shift',
-    'ctrl',
-    'right ctrl',
-    'left ctrl',
-    'windows key',
-    'alt',
-    'right alt',
-    'left alt'
-    ]
-
-MAX_MAPPING_DISPLAY_ROWS = (len(DISPLAY_KEYBOARD_MAPPING) // 2) + 2
+IRC_CMDS_TO_IGNORE = ['JOIN', '001', '002', '003', '004', '375', '372', '376', '353', '366']
 
 GAMEBOY_BUTTON_ALIASES = {
             'A': 'A Button',
@@ -64,51 +28,118 @@ GAMEBOY_BUTTON_ALIASES = {
             'start': "Start"
         }
 
-BUTTON_ALIASES = {
+ALL_BUTTON_ALIASES = {
     'Gameboy': GAMEBOY_BUTTON_ALIASES,
 }
 
-# CONFIGS
-FONT_NAME = 'helvetica'
-EQUAL_SIZED_COLUMNS = 'column'
-EQUAL_SIZED_ROWS = 'rows'
-
-# These are just to explain what the grid_columnconfigure aimed to do
-ONLY_THESE_COLUMNS_EXIST = 1
-FIXED_SIZE = 1
-
-# CONSOLE NAMES
-GAMEBOY = 'Gameboy'
-SNES = 'SNES'
-N64 = 'N64'
-NES = 'NES'
-GAMECUBE = 'Gamecube'
-PC = 'PC'
-
-# MISC
-AVAILABLE_CONSOLES = ['Gameboy', 'N64', 'SNES', 'NES', 'Gamecube', 'PC']
 MESSAGE_RATE = 0.5
 MAX_QUEUE_LENGTH = 20
 MAX_WORKERS = 100
 BUTTON_HOLD_INTERVAL = 3
 
-EMPTY_SCHEME = {
-        'presets': {},
-        }
-
-EMPTY_CONTROL_SCHEMES = {
-    "Gameboy": EMPTY_SCHEME,
-    "NES": EMPTY_SCHEME,
-    "SNES": EMPTY_SCHEME,
-    "Gamecube": EMPTY_SCHEME,
-    "PC": EMPTY_SCHEME,
-    "N64": EMPTY_SCHEME
-    }
-
 EMPTY_SETTINGS = {
     'twitch_channel': '',
     'seen_tutorial': False
 }
+
+
+
+
+
+@dataclass
+class keys:
+    AVAILABLE_KEYS = KEYBOARD_MAPPING
+    USER_FRIENDLY_KEYBOARD_MAPPINGS = [
+        'Single characters (a, 4, -, etc.)',
+        'F# (# = number)',
+        'numpad# (# = number)',
+        'left arrow',
+        'right arrow',
+        'up arrow',
+        'down arrow',
+        'escape',
+        'print screen',
+        'scroll lock',
+        'backspace',
+        'insert',
+        'home',
+        'pageup',
+        'pagedown',
+        'numlock',
+        'clear',
+        'tab',
+        'space',
+        'delete',
+        'end',
+        'capslock',
+        'enter',
+        'return',
+        'shift',
+        'right shift',
+        'left shift',
+        'ctrl',
+        'right ctrl',
+        'left ctrl',
+        'windows key',
+        'alt',
+        'right alt',
+        'left alt'
+    ]
+    
+    # Some were renamed so that the user better understands that the key is. These are those keywords
+    # Some may see 'prntscrn' and get confused. 
+    # "Think about how stupid the average person is, and remember half the world is stupider than that" -George Carlin
+    NEEDED_MAPPING_TRANSLATIONS = {
+        'right arrow': 'right',
+        'up arrow': 'up',
+        'left arrow': 'left',
+        'down arrow': 'down',
+        'scroll lock': 'scrolllock',
+        'right shift': 'shiftright',
+        'left shift': 'shiftleft',
+        'right ctrl': 'ctrlright',
+        'left ctrl': 'ctrlleft',
+        'windows key': 'win',
+        'print screen': 'prntscrn'
+    }
+    HOLD_KEY_DURATION = 3
+    PRESS_TIME_DURATION = 0.7
+
+@dataclass
+class gui:
+    FONT_NAME = 'helvetica'
+    EQUAL_SIZED_COLUMNS = 'column'
+    EQUAL_SIZED_ROWS = 'rows'
+    MAIN_WINDOW_SIZE = '1500x900'
+    COMBINATIONS_WINDOW_SIZE = '1000x800'
+    KEYMAPPING_WINDOW_SIZE = '600x700'
+    BUTTON_COMBO_WINDOW_SIZE = '1400x850'
+    TUTORIAL_WINDOW_SIZE = '1500x800'
+    NAME_PRESET_POPUP_WINDOW_SIZE = '300x300'
+    MAX_KEY_DISPLAY_ROWS = (len(keys.USER_FRIENDLY_KEYBOARD_MAPPINGS) // 2) + 2
+    
+    # These are just to explain what the grid_columnconfigure aimed to do
+    ONLY_THESE_COLUMNS_EXIST = 1
+    FIXED_SIZE = 1
+
+@dataclass
+class consoles:
+    AVAILABLE_CONSOLES = [GAMEBOY, N64, SNES, NES, GAMECUBE, PC]
+    
+@dataclass
+class schemes:
+    EMPTY_SCHEME = {
+        PRESETS: {}
+        }
+    
+    EMPTY_CONTROL_SCHEMES = {
+        GAMEBOY: EMPTY_SCHEME,
+        N64: EMPTY_SCHEME,
+        PC: EMPTY_SCHEME,
+        SNES: EMPTY_SCHEME,
+        NES: EMPTY_SCHEME,
+        GAMECUBE: EMPTY_SCHEME
+    }    
 
 @dataclass
 class text:
@@ -132,6 +163,7 @@ class text:
     
     TUTORIAL_TEXT = [
         "I'm going to tell you what you can do on the screen behind me.",
+        "On the top left, put in your Twitch username. Correct capitalization matters."
         "In the 'Keyboard' field, you're going to put the key you have bound to that button. You can see those by clicking the button on the top right.",
         "In the 'Press Command' field, you're going to put what you want your chat to type to press that button.",
         f"In the 'Hold Command' field, it's the same idea as the above one. Except it holds the button for {BUTTON_HOLD_INTERVAL} seconds.",
@@ -149,7 +181,6 @@ class colors:
     RED = 'red'
     BLACK = 'black'
     
-
 @dataclass
 class dirs:
     ROOT = Path(__file__).resolve().parent

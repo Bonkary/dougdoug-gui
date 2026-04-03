@@ -58,22 +58,25 @@ class CustomComboBox(ctk.CTkComboBox):
         self.isHidden = False
         self._values = values
         self.configure(values=self._values)
-        
+
     def hide(self) -> None:
         self.isHidden = True
         self.grid_remove()
-        
+
     def show(self) -> None:
         self.isHidden = False
         self.grid()
 
     def fill(self, values: list[str]) -> None:
         self.configure(values=values)
-    
+
     def add(self, value: str) -> None:
+        print(self._values)
         self._values.append(value)
         self.configure(values=self._values)
-    
+
+    def show_invald(self) -> None:
+        self.configure(bg_color=colors.RED)
 
 
 class ToggleableButton(CustomButton):
@@ -87,15 +90,15 @@ class ToggleableButton(CustomButton):
         self.configure(state='disabled')
         
 class ClearableEntry(CustomFrame):
-    def __init__(self, master, width: int = 200, height: int = 50, font: tuple = (FONT_NAME,20), justify: str = 'left'):
+    def __init__(self, master, width: int = 200, height: int = 50, font: tuple = (gui.FONT_NAME,20), justify: str = 'left'):
         super().__init__(master=master)
-        self.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST)
+        self.grid_columnconfigure(index=0, weight=gui.ONLY_THESE_COLUMNS_EXIST)
         
         self._entry = ctk.CTkEntry(master=self, width=width, height=height, font=font, justify=justify)
         self._entry.grid(row=0, column=0)
         
         self._clearButton = CustomButton(master=self, text="X", height=10, width=10, 
-                                           command=self.clear, font=(FONT_NAME,font[1]-5))
+                                           command=self.clear, font=(gui.FONT_NAME,font[1]-5))
         self._clearButton.grid(row=0, column=0, sticky='e', padx=(0,3))
         
     def get(self) -> str:
@@ -128,9 +131,9 @@ class NamedEntry(CustomFrame):
                 raise ValueError(f'{name_placement} is not a valid option.')
         
         self.configure(fg_color=colors.TWITCH_PURPLE)
-        self.grid_columnconfigure(index=configureColumns, weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
+        self.grid_columnconfigure(index=configureColumns, weight=gui.ONLY_THESE_COLUMNS_EXIST, uniform=gui.EQUAL_SIZED_COLUMNS)
         
-        self._nameLabel = CustomLabel(master=self, text=name, font=(FONT_NAME,20), width=5)
+        self._nameLabel = CustomLabel(master=self, text=name, font=(gui.FONT_NAME,20), width=5)
         self._nameLabel.grid(row=0, column=0, sticky=nameSticky, padx=(0,10))
         
         self._entry = ClearableEntry(master=self, height=10)

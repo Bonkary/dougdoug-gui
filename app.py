@@ -12,9 +12,9 @@ class AppRoot(ctk.CTk):
         self._keymappingsPopup: ShowKeyMappings = None
         self._tutorialPopup: Tutorial = None
         
-        self.geometry(MAIN_WINDOW_SIZE)
+        self.geometry(gui.MAIN_WINDOW_SIZE)
         self.configure(fg_color=colors.TWITCH_PURPLE)
-        self.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST)
+        self.grid_columnconfigure(index=0, weight=gui.ONLY_THESE_COLUMNS_EXIST)
         
         self._header = Header(app_root=self)
         self._header.grid(row=0, column=0, pady=(20,0), sticky='ew')
@@ -41,24 +41,24 @@ class Header(ctk.CTkFrame):
     def __init__(self, app_root: AppRoot):
         super().__init__(master=app_root)
         self.configure(fg_color=colors.TWITCH_PURPLE)
-        self.grid_columnconfigure(index=(0,1,2), weight=FIXED_SIZE, uniform=EQUAL_SIZED_COLUMNS)
+        self.grid_columnconfigure(index=(0,1,2), weight=gui.FIXED_SIZE, uniform=gui.EQUAL_SIZED_COLUMNS)
         
         self._channelNameEntry = wdgts.NamedEntry(master=self, name="Twitch Channel", name_placement='side')
         self._channelNameEntry.grid(row=0, column=0, sticky='w', padx=(20,0))
         
-        self._titleLabel = wdgts.CustomLabel(master=self, text="Ez Twitch Plays", font=(FONT_NAME,30))
+        self._titleLabel = wdgts.CustomLabel(master=self, text="Ez Twitch Plays", font=(gui.FONT_NAME,30))
         self._titleLabel.grid(row=0, column=1, sticky='ew')
         
         
         self._buttonsFrame = wdgts.CustomFrame(master=self)
-        self._buttonsFrame.grid_columnconfigure(index=(0,1), weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
+        self._buttonsFrame.grid_columnconfigure(index=(0,1), weight=gui.ONLY_THESE_COLUMNS_EXIST, uniform=gui.EQUAL_SIZED_COLUMNS)
         self._buttonsFrame.grid(row=0, column=2, columnspan=2)
         
-        self._tutorialButton = wdgts.CustomButton(master=self._buttonsFrame, text='Tutorial', font=(FONT_NAME,20),
+        self._tutorialButton = wdgts.CustomButton(master=self._buttonsFrame, text='Tutorial', font=(gui.FONT_NAME,20),
                                                   command=app_root.show_tutorial, width=200)
         self._tutorialButton.grid(row=0, column=0, padx=(0,10))
         
-        self._showKeyMappings = wdgts.CustomButton(master=self._buttonsFrame, text="Keyboard Keys", font=(FONT_NAME,20),
+        self._showKeyMappings = wdgts.CustomButton(master=self._buttonsFrame, text="Keyboard Keys", font=(gui.FONT_NAME,20),
                                                    command=app_root.show_key_mappings, width=200)
         self._showKeyMappings.grid(row=0, column=1, padx=(10,0))
         
@@ -67,24 +67,24 @@ class ShowKeyMappings(wdgts.CustomToplevel):
         super().__init__(app_root=app_root, **kwargs)
         self._app_root = app_root
         
-        self.geometry(KEYMAPPING_WINDOW_SIZE)
-        self.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST)
+        self.geometry(gui.KEYMAPPING_WINDOW_SIZE)
+        self.grid_columnconfigure(index=0, weight=gui.ONLY_THESE_COLUMNS_EXIST)
         
-        titleFont = ctk.CTkFont(family=FONT_NAME, size=30, weight='bold', underline=True)
+        titleFont = ctk.CTkFont(family=gui.FONT_NAME, size=30, weight='bold', underline=True)
         self._title = wdgts.CustomLabel(master=self, text='Keyboard Keys',
                                   font=titleFont) 
         self._title.grid(row=0, column=0, pady=20)
         
         self._mappings = wdgts.CustomFrame(master=self)
-        self._mappings.grid_columnconfigure(index=(0,1), weight=ONLY_THESE_COLUMNS_EXIST, uniform=EQUAL_SIZED_COLUMNS)
+        self._mappings.grid_columnconfigure(index=(0,1), weight=gui.ONLY_THESE_COLUMNS_EXIST, uniform=gui.EQUAL_SIZED_COLUMNS)
         self._mappings.grid(row=1, column=0, sticky='news')
         row = 0
         column = 0
-        for mapping in DISPLAY_KEYBOARD_MAPPING:
+        for mapping in keys.USER_FRIENDLY_KEYBOARD_MAPPINGS:
             wdgts.CustomLabel(master=self._mappings, text=mapping, 
-                        font=(FONT_NAME, 20)).grid(row=row, column=column, sticky='ew', pady=3)
+                        font=(gui.FONT_NAME, 20)).grid(row=row, column=column, sticky='ew', pady=3)
             row += 1
-            if row == MAX_MAPPING_DISPLAY_ROWS:
+            if row == gui.MAX_KEY_DISPLAY_ROWS:
                 row = 0
                 column += 1
     
@@ -92,10 +92,10 @@ class Tutorial(wdgts.CustomToplevel):
     def __init__(self, app_root, **kwargs):
         super().__init__(app_root, **kwargs)
         self._appRoot = app_root
-        self.geometry(TUTORIAL_WINDOW_SIZE)
-        self.grid_columnconfigure(index=0, weight=ONLY_THESE_COLUMNS_EXIST)
+        self.geometry(gui.TUTORIAL_WINDOW_SIZE)
+        self.grid_columnconfigure(index=0, weight=gui.ONLY_THESE_COLUMNS_EXIST)
         
-        self._titleLabel = wdgts.CustomLabel(master=self, text="Hi, I'm Tute Toriel. Nice to meet you.", font=(FONT_NAME,20))
+        self._titleLabel = wdgts.CustomLabel(master=self, text="Hi, I'm Tute Toriel. Nice to meet you.", font=(gui.FONT_NAME,20))
         self._titleLabel.pack(pady=50)
         
         self._rewatchAnimationButton = wdgts.CustomButton(master=self, text='Watch "animation" again for some reason',
@@ -106,12 +106,12 @@ class Tutorial(wdgts.CustomToplevel):
         self._rewatchLabels = []
         for line in text.TUTORIAL_TEXT:
              self._labels.append(
-                wdgts.CustomLabel(master=self, text=line, font=(FONT_NAME,20))
+                wdgts.CustomLabel(master=self, text=line, font=(gui.FONT_NAME,20))
             )
              
         for line in text.REWATCH_TUTORIAL_TEXT:
             self._rewatchLabels.append(
-                wdgts.CustomLabel(master=self, text=line, font=(FONT_NAME,20))
+                wdgts.CustomLabel(master=self, text=line, font=(gui.FONT_NAME,20))
             )
         
         if cfg.SETTINGS['seen_tutorial']:
@@ -166,7 +166,7 @@ class Tutorial(wdgts.CustomToplevel):
         
     def rewatch3(self) -> None:
         '''He's angry.'''
-        self._titleLabel.configure(text="I SAID I'M NOT DOING THIS AGAIN.", font=(FONT_NAME,60), fg_color=colors.RED)
+        self._titleLabel.configure(text="I SAID I'M NOT DOING THIS AGAIN.", font=(gui.FONT_NAME,60), fg_color=colors.RED)
         self._rewatchAnimationButton.pack_forget()
         time.sleep(3)
         self.destroy()

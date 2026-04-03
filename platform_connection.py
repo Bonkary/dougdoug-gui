@@ -8,15 +8,25 @@ import os
 import json
 import concurrent.futures
 import traceback
+import queue
+from constants import *
 
-# This is all based off of DougDoug's code. I just made it less bald.
+# I started this using DougDoug's code, but now I think it's barely recognizable. 
+# I had to get it to work within seperate threads.
+# Thanks, DougDoug and Ottomated and DDark and Wituz
 MAX_TIME_TO_WAIT_FOR_LOGIN = 3
 YOUTUBE_FETCH_INTERVAL = 1
 REGEX_PATTERN = b'^(?::(?:([^ !\r\n]+)![^ \r\n]*|[^ \r\n]*) )?([^ \r\n]+)(?: ([^:\r\n]*))?(?: :([^\r\n]*))?\r\n'
 IRC_HOST = 'irc.chat.twitch.tv'
 IRC_PORT = 6667
 NO_NEW_MESSAGE_TIMEOUT = 5
-IRC_CMDS_TO_IGNORE = ['JOIN', '001', '002', '003', '004', '375', '372', '376', '353', '366']
+IRC_MESSAGE_QUEUE_1 = queue.Queue(maxsize=50)
+IRC_MESSAGE_QUEUE_OVERFLOW = queue.Queue(maxsize=50)
+
+NAME = 1
+COMMAND = 2
+PARAMS = 3
+TRAILING = 4
 
 class Twitch():
     '''
@@ -33,7 +43,7 @@ class Twitch():
         self._channelName = channel_name
         self._loginTimestamp = 0
         self._partial = []
-        
+    
     def connect(self) -> None:
         '''Connect to the socket and login to Twitch'''
         print("Connecting to Twitch...")
@@ -44,15 +54,22 @@ class Twitch():
         '''Creates a random username to login all sneaky-like'''
         user = 'justinfan%i' % random.randint(10_000, 99_999)
         self._socket.send(('PASS asdf\r\nNICK %s\r\n' % user).encode())
-        self._socket.settimeout(1.0/60.0)
         self._loginTimestamp = time.time()
-        for ircMessage in self.receive_irc_data():
-            if ircMessage['command'] == '001' and not self._loginOk:
+        
+        self._socket.settimeout(10)
+        ircMessage = self._socket.recv(4096)
+        matches = list(self._regexCore.finditer(ircMessage))
+        for match in matches:
+            command = (match.group(COMMAND) or b'').decode(errors='replace')
+            if (command == '001' or command == 'JOIN') and not self._loginOk:
                 bytesSent = self._socket.send((f'JOIN #{self._channelName}\r\n').encode())
                 if bytesSent > 0:
-                    print(f'Successfully logged in. Listening to channel: {self._channelName}')
-                    self._loginOk = True
-                    break
+                        print(f'Successfully logged in. Listening to channel: {self._channelName}')
+                        self._loginOk = True
+                else:
+                    print("FAILED TO LOGIN")
+            else:
+                continue
     
     def reconnect(self, *, delay: int = 0) -> None:
         '''
@@ -64,85 +81,51 @@ class Twitch():
         time.sleep(delay)
         self.connect()
     
-    def get_messages(self) -> list[dict]:
-        '''Takes the IRC messages and translates the username and message to text'''
-        messages = []
-        ircMessages = self.receive_irc_data()
-        for ircMessage in ircMessages:
-            cmd = ircMessage['command']
-            if cmd == 'PRIVMSG':
-                messages.append({
-                        'username': ircMessage['name'],
-                        'message': ircMessage['trailing']
-                    })
-            elif cmd == 'PING':
-                self._socket.send(b'PONG :tmi.twitch.tv\r\n')
-            elif cmd == 'NOTICE':
-                print('Server notice:', ircMessage['params'], ircMessage['trailing'])
-            elif cmd in IRC_CMDS_TO_IGNORE:
-                continue
-            else:
-                print(f"Unhandled IRC message: {ircMessage}")
-        
-        if not self._loginOk:
-            if time.time() - self._loginTimestamp > MAX_TIME_TO_WAIT_FOR_LOGIN:
-                print("no response from twitch... reconnecting")
-                self.reconnect()
-                messages = []
-
-        return messages
-    
-    def receive_irc_data(self, *, interval: int = NO_NEW_MESSAGE_TIMEOUT) -> list[dict]:
-        f'''
-        Get the IRC messages from Twitch.
-        
-        After receiving no new messages within a set time interval, it will return the obtained IRC messages.
+    def extract_chat_message(self, irc_message: bytes, loggin_in: bool = False) -> dict:
+        '''
+        Takes an IRC message and takes out what we actually want from it
         
         Arguments:
-            interval - Value of seconds to wait between messages before calling it quits.
+            irc_message - The IRC message to get the chat message from.
         '''
-        buffer = b''
-        received = b''
-        data = []
-        self._socket.settimeout(NO_NEW_MESSAGE_TIMEOUT)
+        message: dict = None
+        matches = list(self._regexCore.finditer(irc_message))
+        for match in matches:
+            messageData = ({
+                'name':     (match.group(NAME) or b'').decode(errors='replace'),
+                'command':  (match.group(COMMAND) or b'').decode(errors='replace'),
+                'params':   list(map(lambda p: p.decode(errors='replace'), (match.group(PARAMS) or b'').split(b' '))),
+                'trailing': (match.group(TRAILING) or b'').decode(errors='replace'),
+            })
+
+        cmd = messageData['command']
+        if cmd == 'PRIVMSG':
+            message = {
+                'username': messageData['name'],
+                'message': messageData['trailing']
+            }
+        elif cmd == 'PING':
+            self._socket.send(b'PONG :tmi.twitch.tv\r\n')
+        elif cmd == 'NOTICE':
+            print('Server notice:', irc_message['params'], irc_message['trailing'])
+        elif cmd in IRC_CMDS_TO_IGNORE:
+            pass
+        else:
+            print(f"Unhandled IRC message: {irc_message}")
+        
+        return message
+
+    def forever_listen_irc(self) -> None:
         while True:
             try:
-                received = self._socket.recv(4096)
-                buffer += received
+                ircMessage = self._socket.recv(4096)
+                if ircMessage and not b'JOIN' in ircMessage:
+                    if not IRC_MESSAGE_QUEUE_1.full():
+                        IRC_MESSAGE_QUEUE_1.put(ircMessage)
+                    elif not IRC_MESSAGE_QUEUE_OVERFLOW.full():
+                        IRC_MESSAGE_QUEUE_OVERFLOW.put(ircMessage)
             except socket.timeout:
-                break
-            except Exception as e:
-                print('Unexpected connection error. Reconnecting in a second...', e)
-                self.reconnect(delay=1)
-                return []
-            if not received:
-                print('Connection closed by Twitch. Reconnecting in 5 seconds...')
-                self.reconnect(delay=5)
-                return []
-            received = b''
-        
-        if buffer:
-            if self._partial:
-                buffer = self._partial + buffer
-                self._partial = []
-            
-            matches = list(self._regexCore.finditer(buffer))
-            for match in matches:
-                data.append({
-                    'name':     (match.group(1) or b'').decode(errors='replace'),
-                    'command':  (match.group(2) or b'').decode(errors='replace'),
-                    'params':   list(map(lambda p: p.decode(errors='replace'), (match.group(3) or b'').split(b' '))),
-                    'trailing': (match.group(4) or b'').decode(errors='replace'),
-                })
-                
-            if not matches:
-                self._partial += buffer
-            else:
-                end = matches[-1].end()
-                if end < len(buffer):
-                    self._partial = buffer[end:]
-                
-                if matches[0].start():
-                    print("IDK WHAT THIS MEANS")
-                    
-        return data
+                pass
+
+
+
