@@ -1,6 +1,68 @@
 import pydirectinput
 import time
 from constants import *
+from platform_connection import IRC_MESSAGE_QUEUE_1, IRC_MESSAGE_QUEUE_OVERFLOW, EXECUTOR_THREAD_FLAG, KILL_FLAG
+
+def get_action(cmd, controls: dict):
+    key = None
+    cmdType = None
+    for button in controls:
+        try:
+            if button == 'combo_buttons':
+                continue
+            pressCmd = controls[button]['press']
+            holdCmd = controls[button]['hold']
+            if cmd == pressCmd:
+                key = controls[button]['key']
+                cmdType = 'press'
+                break
+            elif cmd == holdCmd:
+                key = controls[button]['key']
+                cmdType = 'hold'
+                break
+            else:
+                continue
+
+        except (ValueError, AttributeError):
+            continue
+    return (key, cmdType)
+
+def keyboard_execute_thread(controls: dict):
+    ircMessages: list[bytes] = []
+    chatMessages: list[dict] = []
+    while not KILL_FLAG.is_set():
+        EXECUTOR_THREAD_FLAG.wait()
+        if not IRC_MESSAGE_QUEUE_1.empty():
+            while not IRC_MESSAGE_QUEUE_1.empty():
+                ircMessages.append(IRC_MESSAGE_QUEUE_1.get())
+            
+        if not IRC_MESSAGE_QUEUE_OVERFLOW.empty():
+            while not IRC_MESSAGE_QUEUE_OVERFLOW.empty():
+                ircMessages.append(IRC_MESSAGE_QUEUE_OVERFLOW.get())
+        
+        if ircMessages:
+            for ircMessage in ircMessages:
+                chatMessages.append(TWITCH_MANAGER.extract_chat_message(ircMessage))
+                ircMessages.remove(ircMessage)
+        
+        if chatMessages:
+            for message in chatMessages:
+                if message:
+                    cmd = message['message']
+                    key, cmdType = get_action(cmd=cmd, controls=controls)
+                    if key and pydirectinput.is_valid_key(key):
+                        print(key, cmdType)
+                        match cmdType:
+                            case 'press':
+                                print("Pressing")
+                                press_key(key)
+                            case 'hold':
+                                print("Holding")
+                                hold_key(key)
+                        
+                    chatMessages.remove(message)
+                    
+    print("No longer executing")
 
 
 

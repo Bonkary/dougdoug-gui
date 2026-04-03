@@ -147,7 +147,8 @@ class NamedEntry(CustomFrame):
 
     def clear(self) -> None:
         self._entry.clear()
-        
+
+
         
 
 

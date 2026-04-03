@@ -10,6 +10,7 @@ import concurrent.futures
 import traceback
 import queue
 from constants import *
+from threading import Event
 
 # I started this using DougDoug's code, but now I think it's barely recognizable. 
 # I had to get it to work within seperate threads.
@@ -20,14 +21,19 @@ REGEX_PATTERN = b'^(?::(?:([^ !\r\n]+)![^ \r\n]*|[^ \r\n]*) )?([^ \r\n]+)(?: ([^
 IRC_HOST = 'irc.chat.twitch.tv'
 IRC_PORT = 6667
 NO_NEW_MESSAGE_TIMEOUT = 5
+
 IRC_MESSAGE_QUEUE_1 = queue.Queue(maxsize=50)
 IRC_MESSAGE_QUEUE_OVERFLOW = queue.Queue(maxsize=50)
+LISTENER_THREAD_FLAG = Event()
+EXECUTOR_THREAD_FLAG = Event()
+KILL_FLAG = Event()
 
 NAME = 1
 COMMAND = 2
 PARAMS = 3
 TRAILING = 4
- 
+
+
 class Twitch():
     '''
     Handles the communications with Twitch.
@@ -36,18 +42,25 @@ class Twitch():
         channel_name - Name of the Twitch channel to connect to.
     '''
     
-    def __init__(self, *, channel_name: str):
+    def __init__(self):
         self._regexCore = re.compile(REGEX_PATTERN, re.MULTILINE)
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._loginOk = False
-        self._channelName = channel_name
+        self._channelName = ''
         self._loginTimestamp = 0
         self._partial = []
     
-    def connect(self) -> None:
+    def connect(self, *, channel_name: str) -> None:
         '''Connect to the socket and login to Twitch'''
         print("Connecting to Twitch...")
-        self._socket.connect((IRC_HOST, IRC_PORT))
+        self._channelName = channel_name
+        try:
+            self._socket.connect((IRC_HOST, IRC_PORT))
+        except OSError as err:
+            if 'already connected' in str(err):
+                pass
+            else:
+                print(f"idk what went wrong: {err}")
         self.login()
         
     def login(self) -> None:
@@ -71,6 +84,21 @@ class Twitch():
             else:
                 continue
     
+    def is_connected(self) -> bool:
+        isConnected = False
+        check = None
+        try:
+            check = self._socket.recv(1024)
+        except OSError as err:
+            if 'not connected' in str(err):
+                isConnected = False
+            else:
+                print(f"Idk what the hell went wrong: {err}")
+
+        if check:
+            isConnected = True
+        return isConnected
+    
     def reconnect(self, *, delay: int = 0) -> None:
         '''
         Attempt to reconnect to Twitch.
@@ -79,7 +107,7 @@ class Twitch():
             delay - Value of the delay between reconnect attempts
         '''
         time.sleep(delay)
-        self.connect()
+        self.connect(self._channelName)
     
     def extract_chat_message(self, irc_message: bytes, loggin_in: bool = False) -> dict:
         '''
@@ -115,8 +143,9 @@ class Twitch():
         
         return message
 
-    def forever_listen_irc(self) -> None:
-        while True:
+    def listen_forever_thread(self) -> None:
+        while not KILL_FLAG.is_set():
+            LISTENER_THREAD_FLAG.wait()
             try:
                 ircMessage = self._socket.recv(4096)
                 if ircMessage and not b'JOIN' in ircMessage:
@@ -126,6 +155,6 @@ class Twitch():
                         IRC_MESSAGE_QUEUE_OVERFLOW.put(ircMessage)
             except socket.timeout:
                 pass
-
+        print("No longer listening")
 
 

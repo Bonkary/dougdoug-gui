@@ -1,16 +1,21 @@
 import customtkinter as ctk
 from constants import *
 import widgets as wdgts
-from twitch_plays import TwitchPlays
 import configurations as cfg
 import time
 import threading
+import popups
+from console_manager import Console
+from platform_connection import *
+from keyboard_control import keyboard_execute_thread
 
+
+### MAIN WINDOW
 class AppRoot(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self._keymappingsPopup: ShowKeyMappings = None
-        self._tutorialPopup: Tutorial = None
+        self._keymappingsPopup: popups.ShowKeyMappings = None
+        self._tutorialPopup: popups.Tutorial = None
         
         self.geometry(gui.MAIN_WINDOW_SIZE)
         self.configure(fg_color=colors.TWITCH_PURPLE)
@@ -29,13 +34,13 @@ class AppRoot(ctk.CTk):
         if self._keymappingsPopup:
             if self._keymappingsPopup.winfo_exists():
                 return
-        self._keymappingsPopup = ShowKeyMappings(app_root=self)
+        self._keymappingsPopup = popups.ShowKeyMappings(app_root=self)
 
     def show_tutorial(self) -> None:
         if self._tutorialPopup:
             if self._tutorialPopup.winfo_exists():
                 return
-        self._tutorialPopup = Tutorial(app_root=self)
+        self._tutorialPopup = popups.Tutorial(app_root=self)
 
 class Header(ctk.CTkFrame):
     def __init__(self, app_root: AppRoot):
@@ -45,10 +50,10 @@ class Header(ctk.CTkFrame):
         
         self._channelNameEntry = wdgts.NamedEntry(master=self, name="Twitch Channel", name_placement='side')
         self._channelNameEntry.grid(row=0, column=0, sticky='w', padx=(20,0))
+        self._channelNameEntry.set(cfg.SETTINGS['twitch_channel'])
         
         self._titleLabel = wdgts.CustomLabel(master=self, text="Ez Twitch Plays", font=(gui.FONT_NAME,30))
         self._titleLabel.grid(row=0, column=1, sticky='ew')
-        
         
         self._buttonsFrame = wdgts.CustomFrame(master=self)
         self._buttonsFrame.grid_columnconfigure(index=(0,1), weight=gui.ONLY_THESE_COLUMNS_EXIST, uniform=gui.EQUAL_SIZED_COLUMNS)
@@ -61,112 +66,88 @@ class Header(ctk.CTkFrame):
         self._showKeyMappings = wdgts.CustomButton(master=self._buttonsFrame, text="Keyboard Keys", font=(gui.FONT_NAME,20),
                                                    command=app_root.show_key_mappings, width=200)
         self._showKeyMappings.grid(row=0, column=1, padx=(10,0))
-        
-class ShowKeyMappings(wdgts.CustomToplevel):
-    def __init__(self, app_root: AppRoot, **kwargs):
-        super().__init__(app_root=app_root, **kwargs)
-        self._app_root = app_root
-        
-        self.geometry(gui.KEYMAPPING_WINDOW_SIZE)
-        self.grid_columnconfigure(index=0, weight=gui.ONLY_THESE_COLUMNS_EXIST)
-        
-        titleFont = ctk.CTkFont(family=gui.FONT_NAME, size=30, weight='bold', underline=True)
-        self._title = wdgts.CustomLabel(master=self, text='Keyboard Keys',
-                                  font=titleFont) 
-        self._title.grid(row=0, column=0, pady=20)
-        
-        self._mappings = wdgts.CustomFrame(master=self)
-        self._mappings.grid_columnconfigure(index=(0,1), weight=gui.ONLY_THESE_COLUMNS_EXIST, uniform=gui.EQUAL_SIZED_COLUMNS)
-        self._mappings.grid(row=1, column=0, sticky='news')
-        row = 0
-        column = 0
-        for mapping in keys.USER_FRIENDLY_KEYBOARD_MAPPINGS:
-            wdgts.CustomLabel(master=self._mappings, text=mapping, 
-                        font=(gui.FONT_NAME, 20)).grid(row=row, column=column, sticky='ew', pady=3)
-            row += 1
-            if row == gui.MAX_KEY_DISPLAY_ROWS:
-                row = 0
-                column += 1
-    
-class Tutorial(wdgts.CustomToplevel):
-    def __init__(self, app_root, **kwargs):
-        super().__init__(app_root, **kwargs)
+
+
+class TwitchPlays(wdgts.CustomFrame):
+    def __init__(self, app_root: AppRoot):
+        super().__init__(master=app_root)
         self._appRoot = app_root
-        self.geometry(gui.TUTORIAL_WINDOW_SIZE)
+        self._listenerThread: threading.Thread = None
+        self._executeThread: threading.Thread = None
+        
+        self.configure(fg_color=colors.TWITCH_PURPLE)
         self.grid_columnconfigure(index=0, weight=gui.ONLY_THESE_COLUMNS_EXIST)
         
-        self._titleLabel = wdgts.CustomLabel(master=self, text="Hi, I'm Tute Toriel. Nice to meet you.", font=(gui.FONT_NAME,20))
-        self._titleLabel.pack(pady=50)
+        self._consoleManager = Console(app=self)
+        self._consoleManager.grid(row=2, column=0, sticky='news')
         
-        self._rewatchAnimationButton = wdgts.CustomButton(master=self, text='Watch "animation" again for some reason',
-                                                          command=threading.Thread(target=self.rewatch, daemon=True).start)
+        self._alertLabel = wdgts.CustomLabel(master=self, text='', text_color='red', font=(gui.FONT_NAME, 20))
+        self._alertLabel.grid(row=3, column=0, pady=(5,0))
         
+        self.startButton = wdgts.ToggleableButton(master=self, text='Start Playing!', command=self.start_playing,
+                                                          width=500, height=50, font=(gui.FONT_NAME,25))
+        self.startButton.grid(row=4, column=0, pady=(10,0))
+        self.startButton.hide()
         
-        self._labels: list[wdgts.CustomLabel] = []
-        self._rewatchLabels = []
-        for line in text.TUTORIAL_TEXT:
-             self._labels.append(
-                wdgts.CustomLabel(master=self, text=line, font=(gui.FONT_NAME,20))
-            )
-             
-        for line in text.REWATCH_TUTORIAL_TEXT:
-            self._rewatchLabels.append(
-                wdgts.CustomLabel(master=self, text=line, font=(gui.FONT_NAME,20))
-            )
-        
-        if cfg.SETTINGS['seen_tutorial']:
-            for label in self._labels:
-                if label == self._labels[-1]: # Don't show the "you can close me now" text
-                    break 
-                label.pack(pady=20)
-            self._rewatchAnimationButton.pack(pady=5)
-        else:
-            threading.Thread(target=self.animation, daemon=True).start()
-            
+        self._pauseButton = wdgts.ToggleableButton(master=self, text='Pause Playing...', command=self.stop_playing,
+                                                         width=500, height=50, font=(gui.FONT_NAME,25), 
+                                                         fg_color='red')
+        self._pauseButton.grid(row=4, column=0, pady=(10,0))
+        self._pauseButton.hide()
     
-    def animation(self) -> None:
-        '''
-        This is the thread for the animation. I threw this together and it works but may be ugly.
-        '''
-        time.sleep(2) # This is so the first message shows up faster than the longer ones.
-        for label in self._labels:
-            self._appRoot.update()
-            if label == self._labels[-1]:
-                self._appRoot.update()
-                time.sleep(10)
-                label.pack(pady=15)
-                break
-            label.pack(pady=20)
-            time.sleep(5)
-        self._rewatchAnimationButton.pack(pady=5)
-        cfg.SETTINGS['seen_tutorial'] = True
-        cfg.update_settings_file()
+    def set_alert(self, message: str, is_persistant: bool = True) -> None:
+        self._alertLabel.configure(text=message)
+        if not is_persistant:
+            time.sleep(2)
+            self.clear_alert()
+    
+    def clear_alert(self) -> None:
+        self._alertLabel.configure(text='')
+    
+    def assign_controls(self) -> None:
+        pass
+    
+    def start_playing(self) -> None:
+        # TODO: check that all controls are inputted
+        if not self._appRoot.get_channel_name():
+            self.set_alert("You need to enter your channel name!")
+        else:
+            self.clear_alert()
+            self._pauseButton.show()
+            self.startButton.hide()
+            
+            if not TWITCH_MANAGER.is_connected():
+                TWITCH_MANAGER.connect(channel_name=self._appRoot.get_channel_name())
+            controls = self._consoleManager.get_controls()
+            
+            popup = popups.Countdown(master=self)
+            popup.wait_window()
+                
+            self._listenerThread = threading.Thread(target=TWITCH_MANAGER.listen_forever_thread, daemon=True).start()
+            self._executeThread = threading.Thread(target=keyboard_execute_thread, args=(controls,), daemon=True).start()
+            
+            LISTENER_THREAD_FLAG.set()
+            EXECUTOR_THREAD_FLAG.set()
+            
+
+    def stop_playing(self) -> None:
+        KILL_FLAG.set()
+        self._pauseButton.hide()
+        self.startButton.show()
         
-    def rewatch(self) -> None:
-        '''Plays the animation again. But different.'''
-        self._rewatchAnimationButton.pack_forget()
-        self._titleLabel.configure(text="Hey, it's Tute Toriel... again.")
-        for label in self._labels:
-            label.pack_forget()
+    
+    def change_console(self, console: str) -> None:
+        if self.startButton.isHidden:
+            self.startButton.show()
+        if self.presetSelector.isHidden:
+            self.presetSelector.show()
+        self._consoleManager.change_console(console)
         
-        for label in self._rewatchLabels:
-            time.sleep(3)
-            label.pack(pady=15)
-        time.sleep(1)
-        self._rewatchAnimationButton.configure(command=threading.Thread(target=self.rewatch2, daemon=True).start)
-        self._rewatchAnimationButton.pack(pady=5)
-        self.update()
-        
-    def rewatch2(self) -> None:
-        '''Another replay, but a he's bit frustrated.'''
-        for label in self._rewatchLabels:
-            label.pack_forget()
-        self._titleLabel.configure(text="I said I'm not doing this again.")
-        self._rewatchAnimationButton.configure(command=threading.Thread(target=self.rewatch3, daemon=True).start)
-        
-    def rewatch3(self) -> None:
-        '''He's angry.'''
-        self._titleLabel.configure(text="I SAID I'M NOT DOING THIS AGAIN.", font=(gui.FONT_NAME,60), fg_color=colors.RED)
-        self._rewatchAnimationButton.pack_forget()
-        time.sleep(3)
-        self.destroy()
+    def change_preset(self, preset: str) -> None:
+        self._consoleManager.load_preset(preset)
+
+
+
+
+
+

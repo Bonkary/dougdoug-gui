@@ -2,6 +2,9 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 from pydirectinput import KEYBOARD_MAPPING
+from platform_connection import Twitch
+
+TWITCH_MANAGER = Twitch()
 
 # COMMON STRINGS
 GAMEBOY = 'Gameboy'
@@ -102,8 +105,8 @@ class keys:
         'windows key': 'win',
         'print screen': 'prntscrn'
     }
-    HOLD_KEY_DURATION = 3
-    PRESS_TIME_DURATION = 0.7
+    HOLD_KEY_DURATION = 2
+    PRESS_TIME_DURATION = 0.4
 
 @dataclass
 class gui:
@@ -117,6 +120,8 @@ class gui:
     TUTORIAL_WINDOW_SIZE = '1500x800'
     NAME_PRESET_POPUP_WINDOW_SIZE = '300x300'
     MAX_KEY_DISPLAY_ROWS = (len(keys.USER_FRIENDLY_KEYBOARD_MAPPINGS) // 2) + 2
+    CONSOLE_FRAME_WIDTH = 1500
+    CONSOLE_FRAME_HEIGHT = 500
     
     # These are just to explain what the grid_columnconfigure aimed to do
     ONLY_THESE_COLUMNS_EXIST = 1

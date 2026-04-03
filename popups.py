@@ -1,185 +1,122 @@
-import customtkinter as ctk
 import widgets as wdgts
-import time
+import customtkinter as ctk
 import threading
-import json
+import time
 from constants import *
 import configurations as cfg
 
-# Parent frames
-class ControlAssignmentFrame(wdgts.CustomFrame):
-    def __init__(self, app):
-        super().__init__(master=app)
-        self._app = app
+# KEYMAP POPUP
+class ShowKeyMappings(wdgts.CustomToplevel):
+    def __init__(self, app_root: ctk.CTk, **kwargs):
+        super().__init__(app_root=app_root, **kwargs)
+        self._app_root = app_root
         
-        self.configure(fg_color=colors.TWITCH_PURPLE)
+        self.geometry(gui.KEYMAPPING_WINDOW_SIZE)
         self.grid_columnconfigure(index=0, weight=gui.ONLY_THESE_COLUMNS_EXIST)
-        self._activeScheme = None
         
-        self._gameboyScheme = GameboyControls(panel=self, app=app)
-        self._gameboyScheme.grid(row=0, column=0)
-        self._gameboyScheme.hide()
+        titleFont = ctk.CTkFont(family=gui.FONT_NAME, size=30, weight='bold', underline=True)
+        self._title = wdgts.CustomLabel(master=self, text='Keyboard Keys',
+                                  font=titleFont) 
+        self._title.grid(row=0, column=0, pady=20)
+        
+        self._mappings = wdgts.CustomFrame(master=self)
+        self._mappings.grid_columnconfigure(index=(0,1), weight=gui.ONLY_THESE_COLUMNS_EXIST, uniform=gui.EQUAL_SIZED_COLUMNS)
+        self._mappings.grid(row=1, column=0, sticky='news')
+        row = 0
+        column = 0
+        for mapping in keys.USER_FRIENDLY_KEYBOARD_MAPPINGS:
+            wdgts.CustomLabel(master=self._mappings, text=mapping, 
+                        font=(gui.FONT_NAME, 20)).grid(row=row, column=column, sticky='ew', pady=3)
+            row += 1
+            if row == gui.MAX_KEY_DISPLAY_ROWS:
+                row = 0
+                column += 1
 
+# TUTORIAL POPUP
+class Tutorial(wdgts.CustomToplevel):
+    def __init__(self, app_root, **kwargs):
+        super().__init__(app_root, **kwargs)
+        self._appRoot = app_root
+        self.geometry(gui.TUTORIAL_WINDOW_SIZE)
+        self.grid_columnconfigure(index=0, weight=gui.ONLY_THESE_COLUMNS_EXIST)
         
-    def set_console(self, console: str) -> None:
-        if self._activeScheme:
-            self._activeScheme.hide()
-        match console:
-            case 'Gameboy':
-                self._app.presetSelector.set_console(GAMEBOY)
-                self._activeScheme = self._gameboyScheme
-                self._gameboyScheme.show()
-            case 'NES':
-                pass
-            case 'N64':
-                pass
-            case 'SNES':
-                pass
-            case 'Gamecube':
-                pass
-            case 'PC':
-                pass
+        self._titleLabel = wdgts.CustomLabel(master=self, text="Hi, I'm Tute Toriel. Nice to meet you.", font=(gui.FONT_NAME,20))
+        self._titleLabel.pack(pady=50)
+        
+        self._rewatchAnimationButton = wdgts.CustomButton(master=self, text='Watch "animation" again for some reason',
+                                                          command=threading.Thread(target=self.rewatch, daemon=True).start)
+        
+        
+        self._labels: list[wdgts.CustomLabel] = []
+        self._rewatchLabels = []
+        for line in text.TUTORIAL_TEXT:
+             self._labels.append(
+                wdgts.CustomLabel(master=self, text=line, font=(gui.FONT_NAME,20))
+            )
+             
+        for line in text.REWATCH_TUTORIAL_TEXT:
+            self._rewatchLabels.append(
+                wdgts.CustomLabel(master=self, text=line, font=(gui.FONT_NAME,20))
+            )
+        
+        if cfg.SETTINGS['seen_tutorial']:
+            for label in self._labels:
+                if label == self._labels[-1]: # Don't show the "you can close me now" text
+                    break 
+                label.pack(pady=20)
+            self._rewatchAnimationButton.pack(pady=5)
+        else:
+            threading.Thread(target=self.animation, daemon=True).start()
+            
     
-    def save_control_scheme(self) -> None:
-        cfg.SETTINGS['twitch_channel'] = self._app.get_channel_name()
-        self._activeScheme.save_preset()
+    def animation(self) -> None:
+        '''
+        This is the thread for the animation. I threw this together and it works but may be ugly.
+        '''
+        time.sleep(2) # This is so the first message shows up faster than the longer ones.
+        for label in self._labels:
+            self._appRoot.update()
+            if label == self._labels[-1]:
+                self._appRoot.update()
+                time.sleep(10)
+                label.pack(pady=15)
+                break
+            label.pack(pady=20)
+            time.sleep(5)
+        self._rewatchAnimationButton.pack(pady=5)
+        cfg.SETTINGS['seen_tutorial'] = True
+        cfg.update_settings_file()
+        
+    def rewatch(self) -> None:
+        '''Plays the animation again. But different.'''
+        self._rewatchAnimationButton.pack_forget()
+        self._titleLabel.configure(text="Hey, it's Tute Toriel... again.")
+        for label in self._labels:
+            label.pack_forget()
+        
+        for label in self._rewatchLabels:
+            time.sleep(3)
+            label.pack(pady=15)
+        time.sleep(1)
+        self._rewatchAnimationButton.configure(command=threading.Thread(target=self.rewatch2, daemon=True).start)
+        self._rewatchAnimationButton.pack(pady=5)
+        self.update()
+        
+    def rewatch2(self) -> None:
+        '''Another replay, but a he's bit frustrated.'''
+        for label in self._rewatchLabels:
+            label.pack_forget()
+        self._titleLabel.configure(text="I said I'm not doing this again.")
+        self._rewatchAnimationButton.configure(command=threading.Thread(target=self.rewatch3, daemon=True).start)
+        
+    def rewatch3(self) -> None:
+        '''He's angry.'''
+        self._titleLabel.configure(text="I SAID I'M NOT DOING THIS AGAIN.", font=(gui.FONT_NAME,60), fg_color=colors.RED)
+        self._rewatchAnimationButton.pack_forget()
+        time.sleep(3)
+        self.destroy()
 
-    def load_preset(self, preset: str = None) -> None:
-        self._activeScheme.load_preset(preset)
-
-class ControlAssignmentBlock(wdgts.CustomFrame):
-    def __init__(self, master, name: str, **kwargs):
-        super().__init__(master, **kwargs)
-        self._name = name
-        self.grid_columnconfigure(index=(0), weight=gui.ONLY_THESE_COLUMNS_EXIST, uniform=gui.EQUAL_SIZED_COLUMNS)
-        
-        self._keyLabel = wdgts.CustomLabel(master=self, text=name, width=90,
-                                      font=ctk.CTkFont(family=gui.FONT_NAME, size=30, underline=True))
-        self._keyLabel.grid(row=0, column=0, padx=(20,0))
-        
-        self._keyboardEntry = wdgts.NamedEntry(master=self, name="Keyboard", name_placement='side')
-        self._keyboardEntry.grid(row=1, column=0, pady=2, sticky='ew')
-        
-        self._pressEntry = wdgts.NamedEntry(master=self, name="Press Command", name_placement='side')
-        self._pressEntry.grid(row=2, column=0, pady=2, sticky='ew')
-        
-        self._holdEntry = wdgts.NamedEntry(master=self, name="Hold Command", name_placement='side')
-        self._holdEntry.grid(row=3, column=0, pady=2, sticky='ew')
-         
-    def get_controls(self) -> dict:
-        key = self._keyboardEntry.get().lower()
-        if key not in keys.USER_FRIENDLY_KEYBOARD_MAPPINGS:
-            print(f"{self._name} IS NOT A REAL KEY. SOLVE THIS ISSUE.")
-        
-        if key in keys.NEEDED_MAPPING_TRANSLATIONS:
-            key = keys.NEEDED_MAPPING_TRANSLATIONS[key]
-        
-        return {
-            'action': self._name,
-            'key': key,
-            'press': self._pressEntry.get(),
-            'hold': self._holdEntry.get()
-        }
-        
-    def set_controls(self, controls: dict) -> None:
-        self._keyboardEntry.set(controls['key'])
-        self._pressEntry.set(controls['press'])
-        self._holdEntry.set(controls['hold'])
-
-
-# Console Controls
-class GameboyControls(wdgts.CustomFrame):
-    def __init__(self, panel: ControlAssignmentBlock, app, **kwargs):
-        super().__init__(master=panel, **kwargs)
-        self._panel = panel
-        self._app = app
-        self.loadedPreset = ''
-        
-        self.configure(fg_color=colors.TWITCH_PURPLE)
-        self.grid_columnconfigure((0,1,2,3), weight=gui.ONLY_THESE_COLUMNS_EXIST)
-        
-        self._AButton = ControlAssignmentBlock(master=self, name="A Button")
-        self._AButton.grid(row=0, column=0, padx=20, pady=20)
-        
-        self._BButton = ControlAssignmentBlock(master=self, name="B Button")
-        self._BButton.grid(row=0, column=1, padx=20, pady=20)
-        
-        self._LButton = ControlAssignmentBlock(master=self, name="L Bumper")
-        self._LButton.grid(row=0, column=2, padx=20, pady=20)
-        
-        self._RButton = ControlAssignmentBlock(master=self, name="R Bumper")
-        self._RButton.grid(row=0, column=3, padx=20, pady=20)
-        
-        self._DPadLeft = ControlAssignmentBlock(master=self, name="D-Pad Left")
-        self._DPadLeft.grid(row=1, column=0, padx=20, pady=20)
-        
-        self._DPadUp = ControlAssignmentBlock(master=self, name="D-Pad Up")
-        self._DPadUp.grid(row=1, column=1, padx=20, pady=20)
-        
-        self._DPadRight = ControlAssignmentBlock(master=self, name="D-Pad Right")
-        self._DPadRight.grid(row=1, column=2, padx=20, pady=20)
-        
-        self._DPadDown = ControlAssignmentBlock(master=self, name='D-Pad Down')
-        self._DPadDown.grid(row=1, column=3, padx=20, pady=20)
-        
-        self._selectButton = ControlAssignmentBlock(master=self, name="Select")
-        self._selectButton.grid(row=2, column=1, padx=20, pady=20)
-        
-        self._startButton = ControlAssignmentBlock(master=self, name="Start")
-        self._startButton.grid(row=2, column=2, padx=20, pady=20)
-        
-        self._savePresetButton = wdgts.CustomButton(master=self, text="Save Preset",
-                                                    command=self.save_preset, width=200, height=40, font=(gui.FONT_NAME, 20))
-        self._savePresetButton.grid(row=3, column=0, columnspan=2)
-        
-        self._presetEntry = wdgts.NamedEntry(master=self, name='Preset', name_placement='top')
-        self._presetEntry.grid(row=3, column=1, columnspan=2)
-        
-        self._combosButton = wdgts.CustomButton(master=self, text='Open Button Combos',
-                                                command=lambda: ButtonComboConfigPopup(master=self, console=GAMEBOY),
-                                                width=200, height=40, font=(gui.FONT_NAME, 20))
-        self._combosButton.grid(row=3, column=2, columnspan=2)
-
-    def save_preset(self) -> None:
-        presetName = self._presetEntry.get()
-        if not presetName:
-            return
-        self.loadedPreset = presetName
-        
-        cfg.CONTROL_SCHEMES[GAMEBOY][PRESETS][presetName] = {
-            'A': self._AButton.get_controls(),
-            'B': self._BButton.get_controls(),
-            'L': self._LButton.get_controls(),
-            'R': self._RButton.get_controls(),
-            'dpad_left': self._DPadLeft.get_controls(),
-            'dpad_up': self._DPadUp.get_controls(),
-            'dpad_right': self._DPadRight.get_controls(),
-            'dpad_down': self._DPadDown.get_controls(),
-            'select': self._selectButton.get_controls(),
-            'start': self._startButton.get_controls(),
-            'combo_buttons': self.loadedCombos
-        }
-        cfg.update_control_schemes_file()
-        self._app.presetSelector.add(presetName)
-
-    def load_preset(self, preset: str) -> None:
-        self.loadedPreset = preset
-        
-        presetControls = cfg.CONTROL_SCHEMES[GAMEBOY][PRESETS][preset]
-        self._AButton.set_controls(presetControls['A'])
-        self._BButton.set_controls(presetControls['B'])
-        self._LButton.set_controls(presetControls['L'])
-        self._RButton.set_controls(presetControls['R'])
-        self._DPadLeft.set_controls(presetControls['dpad_left'])
-        self._DPadUp.set_controls(presetControls['dpad_up'])
-        self._DPadRight.set_controls(presetControls['dpad_right'])
-        self._DPadDown.set_controls(presetControls['dpad_down'])
-        self._selectButton.set_controls(presetControls['select'])
-        self._startButton.set_controls(presetControls['start'])
-
-        
-
-# Button Combo Managers
+# BUTTON COMBO POPUP
 class ButtonComboConfigPopup(wdgts.CustomToplevel):
     def __init__(self, *, master, console: GameboyControls, **kwargs):
         super().__init__(master, **kwargs)
@@ -324,6 +261,13 @@ class ButtonComboDisplay(wdgts.CustomFrame):
         
         self._holdCmd = wdgts.CustomLabel(master=self, text=f'Hold: {combo["hold"]}', font=(gui.FONT_NAME,15))
         self._holdCmd.grid(row=2, column=0, padx=(20,0), sticky='w')
+
+# OTHER POPUPS
+class Countdown(wdgts.CustomToplevel):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
         
+        
+
 
 
