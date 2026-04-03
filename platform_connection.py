@@ -27,7 +27,7 @@ NAME = 1
 COMMAND = 2
 PARAMS = 3
 TRAILING = 4
-
+ 
 class Twitch():
     '''
     Handles the communications with Twitch.
