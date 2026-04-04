@@ -12,7 +12,7 @@ GAMEBOY_INDEX = 0
 class TwitchPlays(QWidget):
     def __init__(self):
         super().__init__()
-        self.setFixedSize(1400, 900)
+        self.setFixedSize(1600, 900)
         self.setWindowTitle("Ez Twitch Plays")
         
         self.setAutoFillBackground(True)
@@ -21,58 +21,48 @@ class TwitchPlays(QWidget):
         self.setPalette(bg)
         
         mainLayout = QVBoxLayout()
-        mainLayout.setDirection(QBoxLayout.Direction.TopToBottom)
+        mainLayout.setDirection(gui.TOP_TO_BOTTOM)
+        mainLayout.setAlignment(gui.ALIGN_CENTER)
+        mainLayout.setSpacing(0)
         self.setLayout(mainLayout)
+    
+        header = Header()
         
-        # Header
-        headerLayout = HeaderWidget()
+        consoleDropdownContainer = QHBoxLayout()
+        consoleDropdownContainer.setDirection(gui.RIGHT_TO_LEFT)
+        consoleDropdownContainer.setAlignment(gui.ALIGN_CENTER)
         
-
-        # Dropdowns
-        dropdownContainer = QHBoxLayout()
-        dropdownContainer.setDirection(QBoxLayout.Direction.RightToLeft)
-        
-        presetDropdown = wdgts.NamedDropdown(title='Presets', titlePlacement='top')
         consoleDropdown = wdgts.NamedDropdown(title='Select Console', titlePlacement='top')
+        consoleDropdownContainer.addWidget(consoleDropdown, alignment=gui.ALIGN_CENTER)
         
-        dropdownContainer.addSpacing(200)
-        dropdownContainer.addWidget(presetDropdown)
-        dropdownContainer.addSpacing(140)
-        dropdownContainer.addWidget(consoleDropdown)
-        dropdownContainer.addStretch(True)
-        
-        
-        # Consoles
+        consoleContainer = QHBoxLayout()
+        consoleContainer.setSpacing(0)
         consoles = ConsoleContainer()
+        consoleContainer.addSpacing(50)
+        consoleContainer.addWidget(consoles)
         
+        footerContainer = QHBoxLayout()
+        footerContainer.setSpacing(0)
+        footer = Footer()
+        footerContainer.addWidget(footer)
 
-        savePresetContainer = QHBoxLayout()
-        savePresetContainer.setDirection(QBoxLayout.Direction.LeftToRight)
-        
-        presetInput = wdgts.TitledLineEdit(title="Preset Name", titlePlacement='side')
-        saveButton = QPushButton(text="Save")
-        
-        savePresetContainer.addWidget(presetInput)
-        savePresetContainer.addWidget(saveButton)
-        savePresetContainer.addStretch(True)
-        
-        mainLayout.addWidget(headerLayout)
-        mainLayout.addLayout(dropdownContainer)
-        mainLayout.addWidget(consoles, alignment=Qt.AlignmentFlag.AlignTop)
+        mainLayout.addWidget(header, alignment=gui.ALIGN_CENTER)
+        mainLayout.addLayout(consoleDropdownContainer)
+        mainLayout.addLayout(consoleContainer)
+        mainLayout.addWidget(footer, alignment=gui.ALIGN_TOP)
         mainLayout.addStretch(True)
 
-class HeaderWidget(QFrame):
+class Header(QFrame):
     def __init__(self):
         super().__init__()
-        
         mainLayout = QHBoxLayout()
-        mainLayout.setDirection(QBoxLayout.Direction.LeftToRight)
+        mainLayout.setDirection(gui.LEFT_TO_RIGHT)
         self.setLayout(mainLayout)
 
         # Twitch Channel Input
         twitchInputContainer = QHBoxLayout()
-        twitchInputContainer.setDirection(QHBoxLayout.Direction.LeftToRight)
-        twitchInputContainer.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        twitchInputContainer.setDirection(gui.LEFT_TO_RIGHT)
+        twitchInputContainer.setAlignment(gui.ALIGN_LEFT)
         
         twitchLabel = QLabel("Twitch Channel:")
         twitchLabel.setFont(gui.DEFAULT_FONT)
@@ -95,8 +85,8 @@ class HeaderWidget(QFrame):
         
         # Buttons
         buttonContainer = QHBoxLayout()
-        buttonContainer.setDirection(QHBoxLayout.Direction.LeftToRight)
-        buttonContainer.setAlignment(Qt.AlignmentFlag.AlignRight)
+        buttonContainer.setDirection(gui.LEFT_TO_RIGHT)
+        buttonContainer.setAlignment(gui.ALIGN_RIGHT)
         
         tutorialButton = QPushButton(text="Tutorial")
         tutorialButton.setFont(gui.DEFAULT_FONT)
@@ -108,12 +98,34 @@ class HeaderWidget(QFrame):
         buttonContainer.addWidget(keymappingsButton)
         
         mainLayout.addLayout(twitchInputContainer)
-        mainLayout.addSpacing(225)
+        mainLayout.addSpacing(300)
         mainLayout.addWidget(titleLabel)
-        mainLayout.addSpacing(180)
+        mainLayout.addSpacing(300)
         mainLayout.addLayout(buttonContainer)
+        mainLayout.addSpacing(50)
+        mainLayout.addStretch(True)
+
+class Footer(QFrame):
+    def __init__(self):
+        super().__init__()
+        
+        mainLayout = QVBoxLayout()
+        mainLayout.setSpacing(0)
+        mainLayout.setAlignment(gui.ALIGN_CENTER)
+        self.setLayout(mainLayout)
+        
+        presetContainer = QHBoxLayout()
+        presetContainer.setSpacing(0)
+        presets = PresetManager()
+        presetContainer.addWidget(presets, alignment=gui.ALIGN_CENTER|gui.ALIGN_TOP)
+        
+        mainLayout.addLayout(presetContainer)
         mainLayout.addStretch(True)
         
+        
+        
+
+
 class ConsoleContainer(QFrame):
     def __init__(self):
         super().__init__()
@@ -132,10 +144,39 @@ class ConsoleContainer(QFrame):
         
         mainLayout.insertWidget(GAMEBOY_INDEX, gameboy)
 
+class PresetManager(QFrame):
+    def __init__(self):
+        super().__init__()
         
+        self.setContentsMargins(0,0,0,0)
+        mainLayout = QHBoxLayout()
+        mainLayout.setSpacing(0)
+        mainLayout.setAlignment(gui.ALIGN_CENTER)
+        self.setLayout(mainLayout)
+        
+        # Save Preset
+        saveContainer = QVBoxLayout()
+        saveContainer.setAlignment(gui.ALIGN_CENTER)
+        saveContainer.setSpacing(0)
+        
+        inputContainer = QVBoxLayout()
+        inputContainer.setSpacing(0)
+        inputContainer.setAlignment(gui.ALIGN_CENTER)
+        presetInput = wdgts.NamedLineEdit(name="New Preset", namePlacement='top')
+        inputContainer.addWidget(presetInput, alignment=gui.ALIGN_TOP)
+        
+        buttonContainer = QVBoxLayout()
+        buttonContainer.setSpacing(0)
+        buttonContainer.setAlignment(gui.ALIGN_CENTER)
+        saveButton = QPushButton(text="Save")
+        saveButton.setMaximumWidth(75)
+        buttonContainer.addWidget(saveButton)
+        
+        saveContainer.addLayout(inputContainer)
+        saveContainer.addLayout(buttonContainer)
 
-
-
+        mainLayout.addLayout(saveContainer)
+        mainLayout.addStretch(True)
 
 
 if __name__ == '__main__':

@@ -2,6 +2,8 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QBoxLayout
 # from pydirectinput import KEYBOARD_MAPPING
 
 class DefaultFont(QFont):
@@ -117,9 +119,16 @@ class keys:
 class gui:
     DEFAULT_FONT = DefaultFont()
     
-    # These are just to explain what the grid_columnconfigure aimed to do
-    ONLY_THESE_COLUMNS_EXIST = 1
-    FIXED_SIZE = 1
+    ALIGN_LEFT = Qt.AlignmentFlag.AlignLeft
+    ALIGN_RIGHT = Qt.AlignmentFlag.AlignRight
+    ALIGN_CENTER = Qt.AlignmentFlag.AlignCenter
+    ALIGN_BOTTOM = Qt.AlignmentFlag.AlignBottom
+    ALIGN_TOP = Qt.AlignmentFlag.AlignTop
+    
+    LEFT_TO_RIGHT = QBoxLayout.Direction.LeftToRight
+    RIGHT_TO_LEFT = QBoxLayout.Direction.RightToLeft
+    TOP_TO_BOTTOM = QBoxLayout.Direction.TopToBottom
+    BOTTOM_TO_TOP = QBoxLayout.Direction.BottomToTop
 
 @dataclass
 class consoles:
