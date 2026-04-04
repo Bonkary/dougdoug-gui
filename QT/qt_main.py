@@ -61,7 +61,7 @@ class TwitchPlays(QWidget):
         mainLayout.addWidget(consoles, alignment=Qt.AlignmentFlag.AlignTop)
         mainLayout.addStretch(True)
 
-class HeaderWidget(QWidget):
+class HeaderWidget(QFrame):
     def __init__(self):
         super().__init__()
         
@@ -114,7 +114,7 @@ class HeaderWidget(QWidget):
         mainLayout.addLayout(buttonContainer)
         mainLayout.addStretch(True)
         
-class ConsoleContainer(QWidget):
+class ConsoleContainer(QFrame):
     def __init__(self):
         super().__init__()
         self.setAutoFillBackground(True)
@@ -133,9 +133,10 @@ class ConsoleContainer(QWidget):
         mainLayout.insertWidget(GAMEBOY_INDEX, gameboy)
 
         
-        
-        
-        
+
+
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

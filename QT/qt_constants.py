@@ -176,6 +176,7 @@ class text:
 class colors:
     DEFAULT_TEXT = 'white' # also maybe #F9F871'
     TWITCH_PURPLE = '#6441A5'
+    DARK_PURPLE = '#4c3080'
     GREEN = 'green'
     RED = 'red'
     BLACK = 'black'

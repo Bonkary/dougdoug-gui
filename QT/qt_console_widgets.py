@@ -1,11 +1,11 @@
 import sys
-from PySide6.QtGui import QFont, QPixmap
+from PySide6.QtGui import QFont, QPixmap, QPalette, QColor
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import *
 from qt_constants import *
 import qt_widgets as wdgts
 
-class Gameboy(QWidget):
+class Gameboy(QFrame):
     def __init__(self):
         super().__init__()
         self.setAutoFillBackground(True)
@@ -21,31 +21,27 @@ class Gameboy(QWidget):
         row1.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         buttonA = KeyboardButtonInputs(name='A Button')
-        row1.addWidget(buttonA)
-        
         buttonB = KeyboardButtonInputs(name="B Button")
-        row1.addWidget(buttonB)
-        
         bumperR = KeyboardButtonInputs(name="Right Bumper")
-        row1.addWidget(bumperR)
-        
         bumperL = KeyboardButtonInputs(name="Left Bumper")
-        row1.addWidget(bumperL)
-        row1.addSpacing(55)
         
         row2 = QHBoxLayout()
         row2.setDirection(QBoxLayout.Direction.LeftToRight)
         
         dpadUp = KeyboardButtonInputs(name="D-Pad Up")
-        row2.addWidget(dpadUp)
-        
         dpadDown = KeyboardButtonInputs(name="D-Pad Down")
-        row2.addWidget(dpadDown)
-        
         dpadLeft = KeyboardButtonInputs(name="D-Pad Left")
-        row2.addWidget(dpadLeft)
-        
         dpadRight = KeyboardButtonInputs(name="D-Pad Right")
+        
+        row1.addWidget(buttonA)
+        row1.addWidget(buttonB)
+        row1.addWidget(bumperR)
+        row1.addWidget(bumperL)
+        row1.addSpacing(55)
+        
+        row2.addWidget(dpadUp)
+        row2.addWidget(dpadDown)
+        row2.addWidget(dpadLeft)
         row2.addWidget(dpadRight)
         row2.addSpacing(55)
         
@@ -56,12 +52,28 @@ class Gameboy(QWidget):
         
           
         
-class KeyboardButtonInputs(QWidget):
+class KeyboardButtonInputs(QFrame):
     def __init__(self, *, name: str):
         super().__init__()
+        self.setFrameStyle(QFrame.Box | QFrame.Plain)
+        self.setLineWidth(5)
+        
+        borderColor = self.palette()
+        borderColor.setColor(QPalette.WindowText, colors.DARK_PURPLE)
+        self.setPalette(borderColor)
+        
+        rootLayout = QVBoxLayout()
+        self.setLayout(rootLayout)
+        
+        mainFrame = QFrame()
+        mainTextColor = mainFrame.palette()
+        mainTextColor.setColor(QPalette.WindowText, 'white')
+        mainFrame.setPalette(mainTextColor)
+        rootLayout.addWidget(mainFrame)
+        
         mainLayout = QVBoxLayout()
         mainLayout.setDirection(QBoxLayout.Direction.TopToBottom)
-        self.setLayout(mainLayout)
+        mainFrame.setLayout(mainLayout)
         
         titleFont = QFont()
         titleFont.setUnderline(True)

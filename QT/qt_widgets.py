@@ -6,7 +6,7 @@ from qt_constants import *
 
 
 
-class NamedDropdown(QWidget):
+class NamedDropdown(QFrame):
     def __init__(self, *, title: str, titlePlacement: str, titleFont: QFont = gui.DEFAULT_FONT):
         super().__init__()
         match titlePlacement:
@@ -28,7 +28,7 @@ class NamedDropdown(QWidget):
         dropdown.setFixedWidth(200)
         mainLayout.addWidget(dropdown)
 
-class TitledLineEdit(QWidget):
+class TitledLineEdit(QFrame):
     def __init__(self, title: str, titlePlacement: str, titleFont: QFont = gui.DEFAULT_FONT, width: int = 100):
         super().__init__()
         match titlePlacement:
