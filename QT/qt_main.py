@@ -4,9 +4,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import *
 from qt_constants import *
 import qt_widgets as wdgts
-from qt_console_widgets import *
-
-GAMEBOY_INDEX = 0
+from qt_console_widgets import ConsoleContainer
 
 
 class TwitchPlays(QWidget):
@@ -21,59 +19,61 @@ class TwitchPlays(QWidget):
         self.setPalette(bg)
         
         mainLayout = QVBoxLayout()
+        mainLayout.setContentsMargins(0,0,0,0)
         mainLayout.setDirection(gui.TOP_TO_BOTTOM)
-        mainLayout.setAlignment(gui.ALIGN_CENTER)
+        mainLayout.setAlignment(gui.ALIGN_CENTER|gui.ALIGN_TOP)
         mainLayout.setSpacing(0)
-        self.setLayout(mainLayout)
-    
+
+        # Header
         header = Header()
         
-        consoleDropdownContainer = QHBoxLayout()
-        consoleDropdownContainer.setDirection(gui.RIGHT_TO_LEFT)
-        consoleDropdownContainer.setAlignment(gui.ALIGN_CENTER)
-        
+        # Console Dropdown
         consoleDropdown = wdgts.NamedDropdown(title='Select Console', titlePlacement='top')
-        consoleDropdownContainer.addWidget(consoleDropdown, alignment=gui.ALIGN_CENTER)
         
-        consoleContainer = QHBoxLayout()
-        consoleContainer.setSpacing(0)
+        # Console Container
         consoles = ConsoleContainer()
-        consoleContainer.addSpacing(50)
-        consoleContainer.addWidget(consoles)
         
-        footerContainer = QHBoxLayout()
-        footerContainer.setSpacing(0)
+        # Footer
         footer = Footer()
-        footerContainer.addWidget(footer)
 
-        mainLayout.addWidget(header, alignment=gui.ALIGN_CENTER)
-        mainLayout.addLayout(consoleDropdownContainer)
-        mainLayout.addLayout(consoleContainer)
-        mainLayout.addWidget(footer, alignment=gui.ALIGN_TOP)
-        mainLayout.addStretch(True)
+        # Main Layout
+        mainLayout.addSpacing(15)
+        mainLayout.addWidget(header)
+        mainLayout.addSpacing(20)
+        mainLayout.addWidget(consoleDropdown, alignment=gui.ALIGN_CENTER)
+        mainLayout.addSpacing(20)
+        mainLayout.addWidget(consoles, alignment=gui.ALIGN_CENTER)
+        mainLayout.addSpacing(20)
+        mainLayout.addWidget(footer)
+        
+        self.setLayout(mainLayout)
 
 class Header(QFrame):
     def __init__(self):
         super().__init__()
         mainLayout = QHBoxLayout()
-        mainLayout.setDirection(gui.LEFT_TO_RIGHT)
-        self.setLayout(mainLayout)
-
-        # Twitch Channel Input
+        mainLayout.setAlignment(gui.ALIGN_CENTER)
+        mainLayout.setContentsMargins(0,0,0,0)
+        mainLayout.setSpacing(0)
+    
+        # Input
         twitchInputContainer = QHBoxLayout()
-        twitchInputContainer.setDirection(gui.LEFT_TO_RIGHT)
-        twitchInputContainer.setAlignment(gui.ALIGN_LEFT)
+        twitchInputContainer.setAlignment(gui.ALIGN_CENTER)
+        twitchInputContainer.setContentsMargins(0,0,0,0)
+        twitchInputContainer.setSpacing(0)
         
         twitchLabel = QLabel("Twitch Channel:")
         twitchLabel.setFont(gui.DEFAULT_FONT)
         
         twitchInput = QLineEdit()
+        
         saveButton = QPushButton(text="Save")
         
         twitchInputContainer.addWidget(twitchLabel)
+        twitchInputContainer.addSpacing(10)
         twitchInputContainer.addWidget(twitchInput)
+        twitchInputContainer.addSpacing(10)
         twitchInputContainer.addWidget(saveButton)
-        twitchInputContainer.addStretch(True)
         
         # Title
         titleFont = QFont()
@@ -82,11 +82,11 @@ class Header(QFrame):
         titleLabel = QLabel("Ez Twitch Plays")
         titleLabel.setFont(titleFont)
         
-        
         # Buttons
         buttonContainer = QHBoxLayout()
-        buttonContainer.setDirection(gui.LEFT_TO_RIGHT)
-        buttonContainer.setAlignment(gui.ALIGN_RIGHT)
+        buttonContainer.setAlignment(gui.ALIGN_CENTER)
+        buttonContainer.setContentsMargins(0,0,0,0)
+        buttonContainer.setSpacing(0)
         
         tutorialButton = QPushButton(text="Tutorial")
         tutorialButton.setFont(gui.DEFAULT_FONT)
@@ -95,88 +95,77 @@ class Header(QFrame):
         keymappingsButton.setFont(gui.DEFAULT_FONT)
         
         buttonContainer.addWidget(tutorialButton)
+        buttonContainer.addSpacing(20)
         buttonContainer.addWidget(keymappingsButton)
         
+        
+        mainLayout.addSpacing(50)
         mainLayout.addLayout(twitchInputContainer)
-        mainLayout.addSpacing(300)
-        mainLayout.addWidget(titleLabel)
+        mainLayout.addSpacing(320)
+        mainLayout.addWidget(titleLabel, alignment=gui.ALIGN_CENTER)
         mainLayout.addSpacing(300)
         mainLayout.addLayout(buttonContainer)
         mainLayout.addSpacing(50)
         mainLayout.addStretch(True)
+        
+        self.setLayout(mainLayout)
 
 class Footer(QFrame):
     def __init__(self):
         super().__init__()
         
         mainLayout = QVBoxLayout()
-        mainLayout.setSpacing(0)
         mainLayout.setAlignment(gui.ALIGN_CENTER)
+        mainLayout.setContentsMargins(0,0,0,0)
+        mainLayout.setSpacing(0)
         self.setLayout(mainLayout)
         
-        presetContainer = QHBoxLayout()
-        presetContainer.setSpacing(0)
-        presets = PresetManager()
-        presetContainer.addWidget(presets, alignment=gui.ALIGN_CENTER|gui.ALIGN_TOP)
+        configManager = ConfigManager()
         
-        mainLayout.addLayout(presetContainer)
+        
+        mainLayout.addWidget(configManager)
         mainLayout.addStretch(True)
-        
-        
-        
 
-
-class ConsoleContainer(QFrame):
-    def __init__(self):
-        super().__init__()
-        self.setAutoFillBackground(True)
-        bg = self.palette()
-        bg.setColor(self.backgroundRole(), colors.TWITCH_PURPLE)
-        self.setPalette(bg)
-        
-        mainLayout = QStackedLayout()
-        self.setLayout(mainLayout)
-        
-        gameboy = Gameboy()
-        
-        
-        
-        
-        mainLayout.insertWidget(GAMEBOY_INDEX, gameboy)
-
-class PresetManager(QFrame):
+class ConfigManager(QFrame):
     def __init__(self):
         super().__init__()
         
-        self.setContentsMargins(0,0,0,0)
-        mainLayout = QHBoxLayout()
+        mainLayout = QVBoxLayout()
+        mainLayout.setAlignment(gui.ALIGN_TOP)
+        mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
-        mainLayout.setAlignment(gui.ALIGN_CENTER)
+        
         self.setLayout(mainLayout)
         
-        # Save Preset
-        saveContainer = QVBoxLayout()
-        saveContainer.setAlignment(gui.ALIGN_CENTER)
-        saveContainer.setSpacing(0)
+        # Presets
+        dropdown = QComboBox()
+        dropdown.setPlaceholderText("Select Preset")
+        dropdown.setFixedWidth(170)
         
-        inputContainer = QVBoxLayout()
-        inputContainer.setSpacing(0)
-        inputContainer.setAlignment(gui.ALIGN_CENTER)
-        presetInput = wdgts.NamedLineEdit(name="New Preset", namePlacement='top')
-        inputContainer.addWidget(presetInput, alignment=gui.ALIGN_TOP)
+        buttonsContainer = QHBoxLayout()
+        buttonsContainer.setAlignment(gui.ALIGN_TOP|gui.ALIGN_CENTER)
+        buttonsContainer.setContentsMargins(0, 0, 0, 0)
+        buttonsContainer.setSpacing(0)
         
-        buttonContainer = QVBoxLayout()
-        buttonContainer.setSpacing(0)
-        buttonContainer.setAlignment(gui.ALIGN_CENTER)
-        saveButton = QPushButton(text="Save")
-        saveButton.setMaximumWidth(75)
-        buttonContainer.addWidget(saveButton)
+        newButton = QPushButton(text='New')
+        newButton.setFixedWidth(75)
+        updateButton = QPushButton(text="Update")
+        updateButton.setFixedWidth(75)
         
-        saveContainer.addLayout(inputContainer)
-        saveContainer.addLayout(buttonContainer)
-
-        mainLayout.addLayout(saveContainer)
-        mainLayout.addStretch(True)
+        # Button Combos Buttons
+        comboButton = QPushButton(text='Open Button Combos')
+        comboButton.setFixedWidth(200)
+        
+        buttonsContainer.addWidget(newButton)
+        buttonsContainer.addSpacing(10)
+        buttonsContainer.addWidget(updateButton)
+        
+        mainLayout.addWidget(dropdown, alignment=gui.ALIGN_CENTER)
+        mainLayout.addSpacing(4)
+        mainLayout.addLayout(buttonsContainer)
+        mainLayout.addWidget(comboButton, alignment=gui.ALIGN_CENTER)
+        
+        
 
 
 if __name__ == '__main__':

@@ -19,9 +19,10 @@ class NamedDropdown(QFrame):
                 mainLayout.setDirection(gui.LEFT_TO_RIGHT)
             case _: 
                 raise ValueError(f"{titlePlacement} is not a valid value (must be 'top' or 'side')")
-        self.setLayout(mainLayout)
+        mainLayout.setAlignment(gui.ALIGN_TOP)
+        mainLayout.setContentsMargins(0,0,0,0)
         mainLayout.setSpacing(0)
-        self.setContentsMargins(0,0,0,0)
+        self.setLayout(mainLayout)
         
         titleLabel = QLabel(text=title)
         titleLabel.setFont(gui.DEFAULT_FONT)
@@ -37,7 +38,6 @@ class NamedDropdown(QFrame):
 class NamedLineEdit(QFrame):
     def __init__(self, name: str, namePlacement: str, titleFont: QFont = gui.DEFAULT_FONT, width: int = 100):
         super().__init__()
-        self.setMinimumHeight(0)
         match namePlacement:
             case 'top':
                 mainLayout = QVBoxLayout()
@@ -49,16 +49,18 @@ class NamedLineEdit(QFrame):
                 alignment = gui.ALIGN_RIGHT
             case _: 
                 raise ValueError(f"{namePlacement} is not a valid value (must be 'top' or 'side')")
-            
+        
+        mainLayout.setAlignment(gui.ALIGN_TOP)
+        mainLayout.setContentsMargins(0,0,0,0)
+        mainLayout.setSpacing(0)
+        
         self.setLayout(mainLayout)
         mainLayout.setSpacing(0)
         
         titleLabel = QLabel(text=name)
-        titleLabel.setMinimumHeight(0)
         titleLabel.setFont(gui.DEFAULT_FONT)
         
         entry = QLineEdit()
-        entry.setMinimumHeight(0)
         entry.setFixedWidth(width)
         entry.setFont(gui.DEFAULT_FONT)
         

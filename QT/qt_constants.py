@@ -52,7 +52,7 @@ EMPTY_SETTINGS = {
     'seen_tutorial': False
 }
 
-
+GAMEBOY_INDEX = 0
 
 
 
