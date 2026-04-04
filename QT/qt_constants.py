@@ -1,11 +1,15 @@
 from dataclasses import dataclass
 import os
 from pathlib import Path
+from PySide6.QtGui import QFont
 # from pydirectinput import KEYBOARD_MAPPING
-from platform_connection import Twitch
 
-TWITCH_MANAGER = Twitch()
-KEYBOARD_MAPPING = {}
+class DefaultFont(QFont):
+    def __init__(self):
+        super().__init__()
+        
+        self.setPixelSize(17)
+
 
 # COMMON STRINGS
 GAMEBOY = 'Gameboy'
@@ -52,7 +56,7 @@ EMPTY_SETTINGS = {
 
 @dataclass
 class keys:
-    AVAILABLE_KEYS = KEYBOARD_MAPPING
+    # AVAILABLE_KEYS = KEYBOARD_MAPPING
     USER_FRIENDLY_KEYBOARD_MAPPINGS = [
         'Single characters (a, 4, -, etc.)',
         'F# (# = number)',
@@ -111,18 +115,7 @@ class keys:
 
 @dataclass
 class gui:
-    FONT_NAME = 'helvetica'
-    EQUAL_SIZED_COLUMNS = 'column'
-    EQUAL_SIZED_ROWS = 'rows'
-    MAIN_WINDOW_SIZE = '1500x900'
-    COMBINATIONS_WINDOW_SIZE = '1000x800'
-    KEYMAPPING_WINDOW_SIZE = '600x700'
-    BUTTON_COMBO_WINDOW_SIZE = '1400x850'
-    TUTORIAL_WINDOW_SIZE = '1500x800'
-    NAME_PRESET_POPUP_WINDOW_SIZE = '300x300'
-    MAX_KEY_DISPLAY_ROWS = (len(keys.USER_FRIENDLY_KEYBOARD_MAPPINGS) // 2) + 2
-    CONSOLE_FRAME_WIDTH = 1500
-    CONSOLE_FRAME_HEIGHT = 500
+    DEFAULT_FONT = DefaultFont()
     
     # These are just to explain what the grid_columnconfigure aimed to do
     ONLY_THESE_COLUMNS_EXIST = 1
