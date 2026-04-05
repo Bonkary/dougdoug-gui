@@ -23,12 +23,24 @@ class NamedDropdown(QFrame):
         titleLabel.setFont(gui.DEFAULT_FONT)
         titleLabel.setContentsMargins(0,0,0,0)
         
-        dropdown = QComboBox()
-        dropdown.setFixedWidth(200)
-        dropdown.setContentsMargins(0,0,0,0)
+        self._dropdown = QComboBox()
+        self._dropdown.setFixedWidth(200)
+        self._dropdown.setContentsMargins(0,0,0,0)
         
         mainLayout.addWidget(titleLabel, alignment=gui.ALIGN_CENTER)
-        mainLayout.addWidget(dropdown)
+        mainLayout.addWidget(self._dropdown)
+        
+    def addItem(self, item: str) -> None:
+        self._dropdown.addItem(item)
+        
+    def setCurrentText(self, text: str|int) -> None:
+        self._dropdown.setCurrentText(text)
+        
+    def setCurrentIndex(self, index: int) -> None:
+        self._dropdown.setCurrentIndex(index)
+        
+    def setPlaceholderText(self, text: str|int) -> None:
+        self._dropdown.setPlaceholderText(text)
             
 class NamedLineEdit(QFrame):
     def __init__(self, name: str, namePlacement: str, titleFont: QFont = gui.DEFAULT_FONT, width: int = 100):
@@ -57,8 +69,11 @@ class NamedLineEdit(QFrame):
         mainLayout.addSpacing(7)
         mainLayout.addWidget(self.entry, alignment)
         
-    def get(self) -> str:
+    def getText(self) -> str:
         return self.entry.text().strip()
+    
+    def setText(self, text: str) -> None:
+        self.entry.setText(text)
 
 class NoPadHBoxLayout(QHBoxLayout):
     def __init__(self, **kwargs):

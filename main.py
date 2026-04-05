@@ -6,6 +6,7 @@ from constants import *
 import widgets as wdgts
 import popups as popups
 from consoles import ConsoleContainer
+from configurations import *
 
 
 
@@ -26,11 +27,14 @@ class TwitchPlays(QWidget):
         # Header
         header = Header()
         
-        # Console Dropdown
-        consoleDropdown = wdgts.NamedDropdown(title='Select Console', titlePlacement='top')
+        consoleDropdown = QComboBox()
+        for console in AVAILABLE_CONSOLES:
+            consoleDropdown.addItem(console)
+        consoleDropdown.setPlaceholderText("Select Console")
+        consoleDropdown.setCurrentIndex(-1)
         
         # Console Container
-        consoles = ConsoleContainer()
+        consoleContainer = ConsoleContainer()
         
         # Footer
         footer = Footer()
@@ -41,11 +45,13 @@ class TwitchPlays(QWidget):
         mainLayout.addSpacing(20)
         mainLayout.addWidget(consoleDropdown, alignment=gui.ALIGN_CENTER)
         mainLayout.addSpacing(20)
-        mainLayout.addWidget(consoles, alignment=gui.ALIGN_CENTER)
+        mainLayout.addWidget(consoleContainer, alignment=gui.ALIGN_CENTER)
         mainLayout.addSpacing(20)
         mainLayout.addWidget(footer)
         
         self.setLayout(mainLayout)
+        
+        consoleDropdown.currentTextChanged.connect(consoleContainer.change_console)
 
 class Header(QFrame):
     def __init__(self):
@@ -60,18 +66,21 @@ class Header(QFrame):
         # Input
         twitchInputContainer = wdgts.NoPadHBoxLayout()
         
+        # Channel Label
         twitchLabel = QLabel("Twitch Channel:")
         twitchLabel.setFont(gui.DEFAULT_FONT)
         
-        twitchInput = QLineEdit()
+        # Channel Input
+        self._twitchInput = QLineEdit()
         
-        saveButton = QPushButton(text="Save")
+        # Save Button
+        self._saveButton = QPushButton(text="Save")
         
         twitchInputContainer.addWidget(twitchLabel)
         twitchInputContainer.addSpacing(10)
-        twitchInputContainer.addWidget(twitchInput)
+        twitchInputContainer.addWidget(self._twitchInput)
         twitchInputContainer.addSpacing(10)
-        twitchInputContainer.addWidget(saveButton)
+        twitchInputContainer.addWidget(self._saveButton)
         
         # Title
         titleFont = QFont()
@@ -108,6 +117,21 @@ class Header(QFrame):
         mainLayout.addStretch(True)
         
         self.setLayout(mainLayout)
+        
+        if SETTINGS[TWITCH_CHANNEL]:
+            self._twitchInput.setText(SETTINGS[TWITCH_CHANNEL])
+            self._saveButton.setDisabled(True)
+        
+        self._saveButton.clicked.connect(self.save_twitch_channel)
+        self._twitchInput.textChanged.connect(lambda: self._saveButton.setEnabled(True))
+        
+    @Slot()
+    def save_twitch_channel(self) -> None:
+        channel = self._twitchInput.text().strip()
+        if channel:
+            SETTINGS[TWITCH_CHANNEL] = channel
+            update_settings_file()
+            self._saveButton.setDisabled(True)
 
     @Slot()
     def open_keymappings(self):

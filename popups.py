@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtGui import QFont
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import *
 from constants import *
 import widgets as wdgts
@@ -60,10 +60,11 @@ class Keymappings(QDialog):
         
         mainLayout.addLayout(mappingsLayout)
         
-        
+       
 class ButtonCombosConfig(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
+        self.configManager = parent
         self.resize(gui.COMBO_WINDOW_WIDTH, gui.COMBO_WINDOW_HEIGHT)
         self.setWindowTitle("Button Combos")
         
@@ -77,7 +78,8 @@ class ButtonCombosConfig(QDialog):
         
         col1 = wdgts.NoPadVBoxLayout()
         
-        addComboInputs = ButtonComboInputs()
+        # Add Combos
+        addComboInputs = ButtonComboInputs(configManager=self.configManager)
         
         col1.addSpacing(30)
         col1.addWidget(addComboInputs, alignment=gui.ALIGN_CENTER|gui.ALIGN_LEFT)
@@ -85,11 +87,11 @@ class ButtonCombosConfig(QDialog):
         mainLayout.addSpacing(100)
         mainLayout.addLayout(col1)
         mainLayout.addStretch()
-        
 
 class ButtonComboInputs(QFrame):
-    def __init__(self):
+    def __init__(self, *, configManager):
         super().__init__()
+        self.configManager = configManager
         
         mainLayout = wdgts.NoPadVBoxLayout()
         self.setLayout(mainLayout)
@@ -103,22 +105,22 @@ class ButtonComboInputs(QFrame):
         
         # Key Inputs
         keyInputsContainer = wdgts.NoPadHBoxLayout()
-        key1Input = wdgts.NamedLineEdit("Key 1", namePlacement='top')
-        key2Input = wdgts.NamedLineEdit("Key 2", namePlacement='top')
+        self._key1Input = wdgts.NamedLineEdit("Key 1", namePlacement='top')
+        self._key2Input = wdgts.NamedLineEdit("Key 2", namePlacement='top')
         
-        keyInputsContainer.addWidget(key1Input)
-        keyInputsContainer.addWidget(key2Input)
+        keyInputsContainer.addWidget(self._key1Input)
+        keyInputsContainer.addWidget(self._key2Input)
         
         # Commands Inputs
         cmdInputsContainer = wdgts.NoPadVBoxLayout()
         cmdInputsContainer.setContentsMargins(0,0,7,0)
         cmdInputsContainer.setAlignment(gui.ALIGN_CENTER)
-        pressInput = wdgts.NamedLineEdit(name="Press", namePlacement='side')
-        holdInput = wdgts.NamedLineEdit(name="Hold", namePlacement='side')
+        self._pressInput = wdgts.NamedLineEdit(name="Press", namePlacement='side')
+        self._holdInput = wdgts.NamedLineEdit(name="Hold", namePlacement='side')
         
-        cmdInputsContainer.addWidget(pressInput)
+        cmdInputsContainer.addWidget(self._pressInput)
         cmdInputsContainer.addSpacing(15)
-        cmdInputsContainer.addWidget(holdInput)
+        cmdInputsContainer.addWidget(self._holdInput)
         
         # Save Button
         addButton = QPushButton(text='Add Combo')
@@ -131,3 +133,21 @@ class ButtonComboInputs(QFrame):
         mainLayout.addSpacing(10)
         mainLayout.addWidget(addButton, alignment=gui.ALIGN_CENTER)
         mainLayout.addStretch()
+        
+        addButton.clicked.connect(self.add)
+        
+    @Slot()
+    def add(self) -> None:
+        #TODO: check that its a valid key
+        key1 = self._key1Input.getText().lower()
+        key2 = self._key2Input.getText().lower()
+        press = self._pressInput.getText().lower()
+        hold = self._holdInput.getText().lower()
+        
+        self.configManager.add_button_combo({
+            'key1': key1,
+            'key2': key2,
+            'press': press,
+            'hold': hold
+        })
+        

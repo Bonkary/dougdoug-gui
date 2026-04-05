@@ -22,6 +22,8 @@ GAMECUBE = 'Gamecube'
 PC = 'PC'
 COMBO_BUTTONS = 'combo_buttons'
 PRESETS = 'presets'
+CONTROLS = 'controls'
+TWITCH_CHANNEL = 'twitch_channel'
 
 IRC_CMDS_TO_IGNORE = ['JOIN', '001', '002', '003', '004', '375', '372', '376', '353', '366']
 
@@ -38,7 +40,7 @@ GAMEBOY_BUTTON_ALIASES = {
             'start': "Start"
         }
 
-ALL_BUTTON_ALIASES = {
+BUTTON_ALIASES = {
     'Gameboy': GAMEBOY_BUTTON_ALIASES,
 }
 
@@ -47,14 +49,29 @@ MAX_QUEUE_LENGTH = 20
 MAX_WORKERS = 100
 BUTTON_HOLD_INTERVAL = 3
 
-EMPTY_SETTINGS = {
-    'twitch_channel': '',
-    'seen_tutorial': False
-}
 
+
+# Console Stacked Layout Indexes
 GAMEBOY_INDEX = 0
 
+AVAILABLE_CONSOLES = [GAMEBOY, N64, SNES, NES, GAMECUBE, PC] 
 
+@dataclass
+class empty:
+    CONSOLES = {
+        GAMEBOY: {
+            PRESETS: {}
+        }
+    }
+    SETTINGS = {
+        'twitch_channel': '',
+        'seen_tutorial': False
+    }
+    PRESET = {
+        CONTROLS: {},
+        COMBO_BUTTONS: []
+    }
+    
 
 @dataclass
 class keys:
@@ -172,26 +189,6 @@ class gui:
     COMBO_WINDOW_HEIGHT = 500
 
 @dataclass
-class consoles:
-    AVAILABLE_CONSOLES = [GAMEBOY, N64, SNES, NES, GAMECUBE, PC]
-    
-@dataclass
-class schemes:
-    EMPTY_SCHEME = {
-        PRESETS: {}
-        }
-    
-    EMPTY_CONTROL_SCHEMES = {
-        GAMEBOY: EMPTY_SCHEME,
-        N64: EMPTY_SCHEME,
-        PC: EMPTY_SCHEME,
-        SNES: EMPTY_SCHEME,
-        NES: EMPTY_SCHEME,
-        GAMECUBE: EMPTY_SCHEME
-    }    
-
-
-@dataclass
 class colors:
     DEFAULT_TEXT = 'white' # also maybe #F9F871'
     TWITCH_PURPLE = '#6441A5'
@@ -208,6 +205,6 @@ class dirs:
 
 @dataclass
 class files:
-    CONTROL_SCHEMES = os.path.join(dirs.ROOT, 'configs', 'control_schemes.json')
+    CONSOLE_CONFIGS = os.path.join(dirs.ROOT, 'configs', 'console_configs.json')
     SETTINGS = os.path.join(dirs.CONFIGS, 'settings.json')
     
