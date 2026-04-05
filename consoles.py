@@ -33,9 +33,7 @@ class ConsoleContainer(QFrame):
 class Gameboy(QFrame):
     def __init__(self):
         super().__init__()
-        
-        
-        
+
         mainLayout = wdgts.NoPadVBoxLayout()
         self.setLayout(mainLayout)
         
@@ -71,9 +69,7 @@ class Gameboy(QFrame):
         row2.addWidget(dpadRight)
         
         # Config Manager
-        configManager = ConfigManager()
-        
-        
+        configManager = ConfigManager(console=self)
         
         mainLayout.addLayout(row1)
         mainLayout.addSpacing(columnSpacing)
@@ -82,13 +78,19 @@ class Gameboy(QFrame):
         mainLayout.addWidget(configManager)
         mainLayout.addStretch(True)
 
+    def get_current_inputs(self) -> dict:
+        return {
+            
+        }
+
 
 class ConfigManager(QFrame):
-    def __init__(self):
+    def __init__(self, console):
         super().__init__()
+        self.console = console
         self.comboButtonPopup = popups.ButtonCombosConfig(self)
-        mainLayout = wdgts.NoPadVBoxLayout()
         
+        mainLayout = wdgts.NoPadVBoxLayout()
         self.setLayout(mainLayout)
         
         # Presets
@@ -125,9 +127,6 @@ class ConfigManager(QFrame):
         else:
             return
 
-
-          
-
 class KeyboardButtonInputs(QFrame):
     def __init__(self, *, name: str):
         super().__init__()
@@ -160,19 +159,24 @@ class KeyboardButtonInputs(QFrame):
         title.setFont(titleFont)
         
         
-        keyboardInput = wdgts.NamedLineEdit(name="Keyboard", namePlacement='side')
-        pressCmdInput = wdgts.NamedLineEdit(name="Press Command", namePlacement='side')
-        holdCmdInput = wdgts.NamedLineEdit(name="Hold Command", namePlacement='side')
+        self._keyboardInput = wdgts.NamedLineEdit(name="Keyboard", namePlacement='side')
+        self._pressCmdInput = wdgts.NamedLineEdit(name="Press Command", namePlacement='side')
+        self._holdCmdInput = wdgts.NamedLineEdit(name="Hold Command", namePlacement='side')
         
         mainLayout.addWidget(title)
         mainLayout.addSpacing(15)
-        mainLayout.addWidget(keyboardInput)
+        mainLayout.addWidget(self._keyboardInput)
         mainLayout.addSpacing(10)
-        mainLayout.addWidget(pressCmdInput)
+        mainLayout.addWidget(self._pressCmdInput)
         mainLayout.addSpacing(10)
-        mainLayout.addWidget(holdCmdInput)
+        mainLayout.addWidget(self._holdCmdInput)
         
         rootLayout.addWidget(mainFrame, alignment=gui.ALIGN_CENTER)
         rootLayout.addStretch(True)
         
-      
+    def get_inputs(self) -> dict:
+        return {
+            'key': self._keyboardInput.get().lower(),
+            'press': self._pressCmdInput.get().lower(),
+            'hold': self._holdCmdInput.get().lower()
+        }

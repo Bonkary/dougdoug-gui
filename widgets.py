@@ -49,13 +49,16 @@ class NamedLineEdit(QFrame):
         titleLabel = QLabel(text=name)
         titleLabel.setFont(gui.DEFAULT_FONT)
         
-        entry = QLineEdit()
-        entry.setFixedWidth(width)
-        entry.setFont(gui.DEFAULT_FONT)
+        self.entry = QLineEdit()
+        self.entry.setFixedWidth(width)
+        self.entry.setFont(gui.DEFAULT_FONT)
         
         mainLayout.addWidget(titleLabel, alignment=alignment)
         mainLayout.addSpacing(7)
-        mainLayout.addWidget(entry, alignment)
+        mainLayout.addWidget(self.entry, alignment)
+        
+    def get(self) -> str:
+        return self.entry.text().strip()
 
 class NoPadHBoxLayout(QHBoxLayout):
     def __init__(self, **kwargs):
