@@ -4,6 +4,7 @@ from pathlib import Path
 from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QBoxLayout
+from platform_connection import Twitch
 # from pydirectinput import KEYBOARD_MAPPING
 
 class DefaultFont(QFont):
@@ -12,6 +13,7 @@ class DefaultFont(QFont):
         
         self.setPixelSize(17)
 
+TWITCH_MANAGER = Twitch()
 
 # COMMON STRINGS
 GAMEBOY = 'Gameboy'
@@ -25,7 +27,7 @@ PRESETS = 'presets'
 CONTROLS = 'controls'
 TWITCH_CHANNEL = 'twitch_channel'
 
-IRC_CMDS_TO_IGNORE = ['JOIN', '001', '002', '003', '004', '375', '372', '376', '353', '366']
+
 
 GAMEBOY_BUTTON_ALIASES = {
             'A': 'A Button',
@@ -51,7 +53,9 @@ BUTTON_HOLD_INTERVAL = 3
 
 
 
-# Console Stacked Layout Indexes
+# Stacked Layout Indexes
+START_PLAYING_BUTTON_INDEX = 0
+STOP_PLAYING_BUTTON_INDEX = 1
 GAMEBOY_INDEX = 0
 
 AVAILABLE_CONSOLES = [GAMEBOY, N64, SNES, NES, GAMECUBE, PC] 
@@ -180,7 +184,7 @@ class gui:
     BOTTOM_TO_TOP = QBoxLayout.Direction.BottomToTop
     
     MAIN_WINDOW_WIDTH = 1600
-    MAIN_WINDOW_HEIGHT = 900
+    MAIN_WINDOW_HEIGHT = 1000
     
     KEYMAP_WINDOW_WIDTH = 800
     KEYMAP_WINDOW_HEIGHT = 200

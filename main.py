@@ -1,4 +1,5 @@
 import sys
+import threading
 from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt, Slot, Signal
 from PySide6.QtWidgets import *
@@ -7,9 +8,8 @@ import widgets as wdgts
 import popups as popups
 from consoles import ConsoleContainer
 from configurations import *
-
-
-
+from platform_connection import *
+from keyboard_control import keyboard_execute_thread, PRESET_FOR_THREAD
 
 class TwitchPlays(QWidget):
     def __init__(self):
@@ -34,10 +34,10 @@ class TwitchPlays(QWidget):
         consoleDropdown.setCurrentIndex(-1)
         
         # Console Container
-        consoleContainer = ConsoleContainer()
+        self.consoleContainer = ConsoleContainer()
         
         # Footer
-        footer = Footer()
+        self._footer = Footer(app=self)
 
         # Main Layout
         mainLayout.addSpacing(15)
@@ -45,13 +45,35 @@ class TwitchPlays(QWidget):
         mainLayout.addSpacing(20)
         mainLayout.addWidget(consoleDropdown, alignment=gui.ALIGN_CENTER)
         mainLayout.addSpacing(20)
-        mainLayout.addWidget(consoleContainer, alignment=gui.ALIGN_CENTER)
+        mainLayout.addWidget(self.consoleContainer, alignment=gui.ALIGN_CENTER)
         mainLayout.addSpacing(20)
-        mainLayout.addWidget(footer)
+        mainLayout.addWidget(self._footer)
         
         self.setLayout(mainLayout)
         
-        consoleDropdown.currentTextChanged.connect(consoleContainer.change_console)
+        consoleDropdown.currentTextChanged.connect(self.consoleContainer.change_console)
+    
+    @Slot()
+    def start_playing(self) -> None:
+        KILL_THREADS_FLAG.clear()
+        self._footer.playButtonContainer.setCurrentIndex(STOP_PLAYING_BUTTON_INDEX)
+        preset = self.consoleContainer.get_preset()
+        
+        TWITCH_MANAGER.connect(channel_name=SETTINGS[TWITCH_CHANNEL])
+        
+        threading.Thread(target=TWITCH_MANAGER.listen_forever_thread, daemon=True).start()
+        threading.Thread(target=keyboard_execute_thread, args=(preset,), daemon=True).start()
+        
+        LISTENER_THREAD_FLAG.set()
+        EXECUTOR_THREAD_FLAG.set()
+        
+    @Slot()
+    def stop_playing(self) -> None:
+        self._footer.playButtonContainer.setCurrentIndex(START_PLAYING_BUTTON_INDEX)
+        KILL_THREADS_FLAG.set()
+        LISTENER_THREAD_FLAG.clear()
+        EXECUTOR_THREAD_FLAG.clear()
+        print("AHHHH")
 
 class Header(QFrame):
     def __init__(self):
@@ -140,13 +162,33 @@ class Header(QFrame):
         else:
             return
 
-
 class Footer(QFrame):
-    def __init__(self):
+    def __init__(self, app: TwitchPlays):
         super().__init__()
         
-        mainLayout = wdgts.NoPadVBoxLayout()
+        mainLayout = wdgts.NoPadHBoxLayout()
         self.setLayout(mainLayout)
+        
+        self.playButtonContainer = QStackedLayout()
+        self.playButtonContainer.setAlignment(gui.ALIGN_CENTER)
+        self.playButtonContainer.setContentsMargins(0,0,0,0)
+        self.playButtonContainer.setSpacing(0)
+        
+        startButton = QPushButton("Start Playing")
+        startButton.setFixedSize(500,50)
+        
+        stopButton = QPushButton("Stop Playing")
+        stopButton.setFixedSize(500,50)
+        
+        self.playButtonContainer.insertWidget(START_PLAYING_BUTTON_INDEX, startButton)
+        self.playButtonContainer.insertWidget(STOP_PLAYING_BUTTON_INDEX, stopButton)
+        
+        mainLayout.addStretch()
+        mainLayout.addLayout(self.playButtonContainer)
+        mainLayout.addStretch()
+        
+        startButton.clicked.connect(app.start_playing)
+        stopButton.clicked.connect(app.stop_playing)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

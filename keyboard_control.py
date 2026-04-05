@@ -1,11 +1,16 @@
 import pydirectinput
 import time
 from constants import *
-from platform_connection import IRC_MESSAGE_QUEUE_1, IRC_MESSAGE_QUEUE_OVERFLOW, EXECUTOR_THREAD_FLAG, KILL_FLAG
+from platform_connection import *
 
-def get_action(cmd, controls: dict):
+PRESET_FOR_THREAD = None
+
+def get_action(cmd, preset: dict):
     key = None
     cmdType = None
+    controls = preset[CONTROLS]
+    combos = preset[COMBO_BUTTONS]
+    
     for button in controls:
         try:
             if button == 'combo_buttons':
@@ -22,16 +27,26 @@ def get_action(cmd, controls: dict):
                 break
             else:
                 continue
-
         except (ValueError, AttributeError):
             continue
+        
+    if not key:
+        for combo in combos:
+            pressCmd = combo['press']
+            holdCmd = combo['hold']
+            if cmd == pressCmd or cmd == holdCmd:
+                cmdType = 'press' if cmd == pressCmd else 'hold'
+                key = (combo['key1'], combo['key2'])
+    
     return (key, cmdType)
 
 def keyboard_execute_thread(controls: dict):
+    print("Executing...")
     ircMessages: list[bytes] = []
     chatMessages: list[dict] = []
-    while not KILL_FLAG.is_set():
+    while not KILL_THREADS_FLAG.is_set():
         EXECUTOR_THREAD_FLAG.wait()
+        print('exe')
         if not IRC_MESSAGE_QUEUE_1.empty():
             while not IRC_MESSAGE_QUEUE_1.empty():
                 ircMessages.append(IRC_MESSAGE_QUEUE_1.get())
@@ -49,7 +64,8 @@ def keyboard_execute_thread(controls: dict):
             for message in chatMessages:
                 if message:
                     cmd = message['message']
-                    key, cmdType = get_action(cmd=cmd, controls=controls)
+                    key, cmdType = get_action(cmd=cmd, preset=controls)
+                    print(key, cmdType)
                     if key and pydirectinput.is_valid_key(key):
                         print(key, cmdType)
                         match cmdType:
@@ -61,8 +77,6 @@ def keyboard_execute_thread(controls: dict):
                                 hold_key(key)
                         
                     chatMessages.remove(message)
-                    
-    print("No longer executing")
 
 
 

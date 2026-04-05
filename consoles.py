@@ -12,7 +12,7 @@ from configurations import *
 class ConsoleContainer(QFrame):
     def __init__(self):
         super().__init__()
-        
+        self.activeConsole = None
         rootLayout = wdgts.NoPadHBoxLayout()
         self.setLayout(rootLayout)
         
@@ -28,10 +28,15 @@ class ConsoleContainer(QFrame):
         mainLayout.insertWidget(GAMEBOY_INDEX, gameboy)
         
         rootLayout.addLayout(mainLayout)
+        
+        self.activeConsole = gameboy
 
     @Slot(str)
     def change_console(self, console: str) -> None:
         print(console)
+
+    def get_preset(self) -> dict:
+        return self.activeConsole.get_loaded_preset()
 
 class ConfigManager(QFrame):
     def __init__(self, console: Gameboy):
@@ -41,9 +46,6 @@ class ConfigManager(QFrame):
         
         mainLayout = wdgts.NoPadVBoxLayout()
         self.setLayout(mainLayout)
-        
-        
-        
         
         dropdownContainer = wdgts.NoPadHBoxLayout()
         dropdownContainer.setAlignment(gui.ALIGN_CENTER)
@@ -62,7 +64,6 @@ class ConfigManager(QFrame):
         dropdownContainer.addWidget(self._presetDropdown)
         dropdownContainer.addSpacing(5)
         dropdownContainer.addWidget(trashButton)
-        
         
         buttonsContainer = wdgts.NoPadHBoxLayout()
         buttonsContainer.setAlignment(gui.ALIGN_CENTER)
@@ -110,9 +111,7 @@ class ConfigManager(QFrame):
             for preset in CONSOLES[self.console.name][PRESETS]:
                 self._presetDropdown.addItem(preset)
         
-        
-        
-    
+
     @Slot()
     def open_button_combos(self) -> None:
         if not self._presetDropdown.currentText():
@@ -132,7 +131,7 @@ class ConfigManager(QFrame):
     def start_new_preset(self) -> None:
         name, ok = QInputDialog.getText(self, "New Preset", "Preset Name")
         if ok:
-            self.console.clear_controls()
+            # self.console.clear_controls()
             CONSOLES[self.console.name][PRESETS][name] = empty.PRESET
             self._presetDropdown.addItem(name)
             self._presetDropdown.setCurrentText(name)
@@ -202,7 +201,7 @@ class KeyboardButtonInputs(QFrame):
 
     def load_inputs(self, inputs: dict):
         self._keyboardInput.setText(inputs['key'])
-        self._pressCmdInput.setText(inputs['hold'])
+        self._pressCmdInput.setText(inputs['press'])
         self._holdCmdInput.setText(inputs['hold'])
     
     def clear_inputs(self) -> None:
@@ -217,6 +216,7 @@ class Gameboy(QFrame):
     def __init__(self):
         super().__init__()
         self.name = GAMEBOY
+        self.activePreset: str = None
         self._buttons: list[KeyboardButtonInputs] = []
         
         mainLayout = wdgts.NoPadVBoxLayout()
@@ -297,25 +297,32 @@ class Gameboy(QFrame):
             'dpad_left': self._dpadLeft.get_inputs(),
             'dpad_right': self._dpadRight.get_inputs(),
             'select': self._select.get_inputs(),
-            'start': self._select.get_inputs()
+            'start': self._start.get_inputs()
         }
     
     @Slot(str)
     def load_preset(self, preset: str) -> None:
-        preset = CONSOLES[GAMEBOY][PRESETS][preset][CONTROLS]
-        if preset:
-            self._buttonA.load_inputs(preset['a'])
-            self._buttonB.load_inputs(preset['b'])
-            self._bumperR.load_inputs(preset['r'])
-            self._bumperL.load_inputs(preset['l'])
-            self._dpadUp.load_inputs(preset['dpad_up'])
-            self._dpadDown.load_inputs(preset['dpad_down'])
-            self._dpadLeft.load_inputs(preset['dpad_left'])
-            self._dpadRight.load_inputs(preset['dpad_right'])
-            self._select.load_inputs(preset['select'])
-            self._start.load_inputs(preset['start'])
+        if not preset:
+            return
+        self.activePreset = preset
+        controls = CONSOLES[GAMEBOY][PRESETS][preset][CONTROLS]
+        if controls:
+            self._buttonA.load_inputs(controls['a'])
+            self._buttonB.load_inputs(controls['b'])
+            self._bumperR.load_inputs(controls['r'])
+            self._bumperL.load_inputs(controls['l'])
+            self._dpadUp.load_inputs(controls['dpad_up'])
+            self._dpadDown.load_inputs(controls['dpad_down'])
+            self._dpadLeft.load_inputs(controls['dpad_left'])
+            self._dpadRight.load_inputs(controls['dpad_right'])
+            self._select.load_inputs(controls['select'])
+            self._start.load_inputs(controls['start'])
         else:
             self.clear_controls()
+
+    def get_loaded_preset(self) -> dict:
+        print(self.activePreset)
+        return CONSOLES[GAMEBOY][PRESETS][self.activePreset]
 
     def clear_controls(self) -> None:
         for button in self._buttons:

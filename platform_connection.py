@@ -22,11 +22,14 @@ IRC_HOST = 'irc.chat.twitch.tv'
 IRC_PORT = 6667
 NO_NEW_MESSAGE_TIMEOUT = 5
 
+IRC_CMDS_TO_IGNORE = ['JOIN', '001', '002', '003', '004', '375', '372', '376', '353', '366']
 IRC_MESSAGE_QUEUE_1 = queue.Queue(maxsize=50)
 IRC_MESSAGE_QUEUE_OVERFLOW = queue.Queue(maxsize=50)
+PRESET_QUEUE = queue.Queue(maxsize=1)
+
 LISTENER_THREAD_FLAG = Event()
 EXECUTOR_THREAD_FLAG = Event()
-KILL_FLAG = Event()
+KILL_THREADS_FLAG = Event()
 
 NAME = 1
 COMMAND = 2
@@ -58,6 +61,7 @@ class Twitch():
             self._socket.connect((IRC_HOST, IRC_PORT))
         except OSError as err:
             if 'already connected' in str(err):
+                print("already connected")
                 pass
             else:
                 print(f"idk what went wrong: {err}")
@@ -66,7 +70,10 @@ class Twitch():
     def login(self) -> None:
         '''Creates a random username to login all sneaky-like'''
         user = 'justinfan%i' % random.randint(10_000, 99_999)
-        self._socket.send(('PASS asdf\r\nNICK %s\r\n' % user).encode())
+        try:
+            self._socket.send(('PASS asdf\r\nNICK %s\r\n' % user).encode())
+        except ConnectionAbortedError:
+            TWITCH_MANAGER.reconnect()
         self._loginTimestamp = time.time()
         
         self._socket.settimeout(10)
@@ -144,8 +151,10 @@ class Twitch():
         return message
 
     def listen_forever_thread(self) -> None:
-        while not KILL_FLAG.is_set():
+        print("Listening...")
+        while not KILL_THREADS_FLAG.is_set():
             LISTENER_THREAD_FLAG.wait()
+            print('lis')
             try:
                 ircMessage = self._socket.recv(4096)
                 if ircMessage and not b'JOIN' in ircMessage:
@@ -155,6 +164,7 @@ class Twitch():
                         IRC_MESSAGE_QUEUE_OVERFLOW.put(ircMessage)
             except socket.timeout:
                 pass
-        print("No longer listening")
-
+            except ConnectionAbortedError:
+                self.reconnect()
+        
 
