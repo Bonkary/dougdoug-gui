@@ -2,9 +2,9 @@ import sys
 from PySide6.QtGui import QFont, QPixmap, QPalette, QColor
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import *
-from qt_constants import *
-import qt_widgets as wdgts
-import qt_popups as popups
+from constants import *
+import widgets as wdgts
+import popups as popups
 
 
 

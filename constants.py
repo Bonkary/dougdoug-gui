@@ -1,11 +1,17 @@
 from dataclasses import dataclass
 import os
 from pathlib import Path
+from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QBoxLayout
 # from pydirectinput import KEYBOARD_MAPPING
-from platform_connection import Twitch
 
-TWITCH_MANAGER = Twitch()
-KEYBOARD_MAPPING = {}
+class DefaultFont(QFont):
+    def __init__(self):
+        super().__init__()
+        
+        self.setPixelSize(17)
+
 
 # COMMON STRINGS
 GAMEBOY = 'Gameboy'
@@ -46,13 +52,13 @@ EMPTY_SETTINGS = {
     'seen_tutorial': False
 }
 
-
+GAMEBOY_INDEX = 0
 
 
 
 @dataclass
 class keys:
-    AVAILABLE_KEYS = KEYBOARD_MAPPING
+    # AVAILABLE_KEYS = KEYBOARD_MAPPING
     USER_FRIENDLY_KEYBOARD_MAPPINGS = [
         'Single characters (a, 4, -, etc.)',
         'F# (# = number)',
@@ -111,22 +117,59 @@ class keys:
 
 @dataclass
 class gui:
-    FONT_NAME = 'helvetica'
-    EQUAL_SIZED_COLUMNS = 'column'
-    EQUAL_SIZED_ROWS = 'rows'
-    MAIN_WINDOW_SIZE = '1500x900'
-    COMBINATIONS_WINDOW_SIZE = '1000x800'
-    KEYMAPPING_WINDOW_SIZE = '600x700'
-    BUTTON_COMBO_WINDOW_SIZE = '1400x850'
-    TUTORIAL_WINDOW_SIZE = '1500x800'
-    NAME_PRESET_POPUP_WINDOW_SIZE = '300x300'
-    MAX_KEY_DISPLAY_ROWS = (len(keys.USER_FRIENDLY_KEYBOARD_MAPPINGS) // 2) + 2
-    CONSOLE_FRAME_WIDTH = 1500
-    CONSOLE_FRAME_HEIGHT = 500
+    @dataclass
+    class dialog:
+        COMBO_BUTTON_INSTRUCTIONS = '\n'.join([
+            "I'm sure you see the button names under me.\n",
+            "I need you to type the ones on the right into the 'Key #' box.\n",
+            "Don't mess it up.\n",
+        ])
+        
+        REWATCH_TUTORIAL_TEXT = [
+            "I'm going to tell you what you can do on the screen behind me.",
+            "Please pay attention because I am not doing this again.",
+            "In the 'Keyboard' field, you're going to put the key you have bound to that button. You can see those by clicking the button on the top right.",
+            "In the 'Press Command' field, you're going to put what you want your chat to type to press that button.",
+            f"In the 'Hold Command' field, it's the same idea as the above one. Except it holds the button for {BUTTON_HOLD_INTERVAL} seconds.",
+            "Still following?",
+            "You can setup Button Combos by clicking the very obvious button for it after you select a console.",
+            "Instructions will follow.",
+            "Bye."
+        ]
+        
+        TUTORIAL_TEXT = [
+            "I'm going to tell you what you can do on the screen behind me.",
+            "On the top left, put in your Twitch username. Correct capitalization matters."
+            "In the 'Keyboard' field, you're going to put the key you have bound to that button. You can see those by clicking the button on the top right.",
+            "In the 'Press Command' field, you're going to put what you want your chat to type to press that button.",
+            f"In the 'Hold Command' field, it's the same idea as the above one. Except it holds the button for {BUTTON_HOLD_INTERVAL} seconds.",
+            "You can setup Button Combos by clicking the very obvious button for it after you select a console.",
+            "Instructions will follow.",
+            "Have fun. o7",
+            "(You can close me now. I'm done. I appreciate the patience tho.)"
+        ]
+
+    DEFAULT_FONT = DefaultFont()
     
-    # These are just to explain what the grid_columnconfigure aimed to do
-    ONLY_THESE_COLUMNS_EXIST = 1
-    FIXED_SIZE = 1
+    ALIGN_LEFT = Qt.AlignmentFlag.AlignLeft
+    ALIGN_RIGHT = Qt.AlignmentFlag.AlignRight
+    ALIGN_CENTER = Qt.AlignmentFlag.AlignCenter
+    ALIGN_BOTTOM = Qt.AlignmentFlag.AlignBottom
+    ALIGN_TOP = Qt.AlignmentFlag.AlignTop
+    
+    LEFT_TO_RIGHT = QBoxLayout.Direction.LeftToRight
+    RIGHT_TO_LEFT = QBoxLayout.Direction.RightToLeft
+    TOP_TO_BOTTOM = QBoxLayout.Direction.TopToBottom
+    BOTTOM_TO_TOP = QBoxLayout.Direction.BottomToTop
+    
+    MAIN_WINDOW_WIDTH = 1600
+    MAIN_WINDOW_HEIGHT = 900
+    
+    KEYMAP_WINDOW_WIDTH = 800
+    KEYMAP_WINDOW_HEIGHT = 200
+   
+    COMBO_WINDOW_WIDTH = 1200
+    COMBO_WINDOW_HEIGHT = 500
 
 @dataclass
 class consoles:
@@ -147,42 +190,12 @@ class schemes:
         GAMECUBE: EMPTY_SCHEME
     }    
 
-@dataclass
-class text:
-    COMBO_BUTTON_INSTRUCTIONS = '\n'.join([
-        "I'm sure you see the button names under me.\n",
-        "I need you to type the ones on the right into the 'Key #' box.\n",
-        "Don't mess it up.\n",
-    ])
-    
-    REWATCH_TUTORIAL_TEXT = [
-        "I'm going to tell you what you can do on the screen behind me.",
-        "Please pay attention because I am not doing this again.",
-        "In the 'Keyboard' field, you're going to put the key you have bound to that button. You can see those by clicking the button on the top right.",
-        "In the 'Press Command' field, you're going to put what you want your chat to type to press that button.",
-        f"In the 'Hold Command' field, it's the same idea as the above one. Except it holds the button for {BUTTON_HOLD_INTERVAL} seconds.",
-        "Still following?",
-        "You can setup Button Combos by clicking the very obvious button for it after you select a console.",
-        "Instructions will follow.",
-        "Bye."
-    ]
-    
-    TUTORIAL_TEXT = [
-        "I'm going to tell you what you can do on the screen behind me.",
-        "On the top left, put in your Twitch username. Correct capitalization matters."
-        "In the 'Keyboard' field, you're going to put the key you have bound to that button. You can see those by clicking the button on the top right.",
-        "In the 'Press Command' field, you're going to put what you want your chat to type to press that button.",
-        f"In the 'Hold Command' field, it's the same idea as the above one. Except it holds the button for {BUTTON_HOLD_INTERVAL} seconds.",
-        "You can setup Button Combos by clicking the very obvious button for it after you select a console.",
-        "Instructions will follow.",
-        "Have fun. o7",
-        "(You can close me now. I'm done. I appreciate the patience tho.)"
-    ]
 
 @dataclass
 class colors:
     DEFAULT_TEXT = 'white' # also maybe #F9F871'
     TWITCH_PURPLE = '#6441A5'
+    DARK_PURPLE = '#4c3080'
     GREEN = 'green'
     RED = 'red'
     BLACK = 'black'
