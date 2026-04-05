@@ -1,6 +1,6 @@
 import sys
-from PySide6.QtGui import QFont, QPixmap, QPalette, QColor
-from PySide6.QtCore import Qt, Slot
+from PySide6.QtGui import QFont, QPixmap, QPalette, QColor, QIcon
+from PySide6.QtCore import Qt, Slot, QSize
 from PySide6.QtWidgets import *
 from constants import *
 import widgets as wdgts
@@ -42,12 +42,27 @@ class ConfigManager(QFrame):
         mainLayout = wdgts.NoPadVBoxLayout()
         self.setLayout(mainLayout)
         
+        
+        
+        
+        dropdownContainer = wdgts.NoPadHBoxLayout()
+        dropdownContainer.setAlignment(gui.ALIGN_CENTER)
+        
         # Presets
         self._presetDropdown = QComboBox()
         self._presetDropdown.setPlaceholderText("Select Preset")
         self._presetDropdown.setFixedWidth(170)
-        for preset in CONSOLES[self.console.consoleName][PRESETS]:
+        for preset in CONSOLES[self.console.name][PRESETS]:
             self._presetDropdown.addItem(preset)
+        
+        # Trash Button
+        trashButton = QPushButton(text='Delete')
+        
+        dropdownContainer.addSpacing(75)
+        dropdownContainer.addWidget(self._presetDropdown)
+        dropdownContainer.addSpacing(5)
+        dropdownContainer.addWidget(trashButton)
+        
         
         buttonsContainer = wdgts.NoPadHBoxLayout()
         buttonsContainer.setAlignment(gui.ALIGN_CENTER)
@@ -65,29 +80,45 @@ class ConfigManager(QFrame):
         buttonsContainer.addSpacing(10)
         buttonsContainer.addWidget(updateButton)
         
-        mainLayout.addWidget(self._presetDropdown, alignment=gui.ALIGN_CENTER)
-        mainLayout.addSpacing(4)
+        mainLayout.addLayout(dropdownContainer)
         mainLayout.addLayout(buttonsContainer)
         mainLayout.addWidget(comboButton, alignment=gui.ALIGN_CENTER)
         
         newButton.clicked.connect(self.start_new_preset)
         updateButton.clicked.connect(self.update_preset_controls)
         comboButton.clicked.connect(self.open_button_combos)
+        trashButton.clicked.connect(self.trash_preset)
         self._presetDropdown.currentTextChanged.connect(console.load_preset)
         
     def add_button_combo(self, combo: dict) -> None:
-        consoleName = self.console.consoleName
+        consoleName = self.console.name
         presetName = self._presetDropdown.currentText()
         if not combo in CONSOLES[consoleName][PRESETS][presetName][COMBO_BUTTONS]:
             CONSOLES[consoleName][PRESETS][presetName][COMBO_BUTTONS].append(combo)
             update_console_configs_file()
+    
+    @Slot()
+    def trash_preset(self) -> None:
+        preset = self._presetDropdown.currentText()
+        if not preset:
+            return
+        reply = QMessageBox.question(self, "Are you sure?", f"Are you sure you want to delete the '{preset}' preset?")
+        if reply == QMessageBox.StandardButton.Yes:
+            del CONSOLES[self.console.name][PRESETS][preset]
+            update_console_configs_file()
+            self._presetDropdown.clear()
+            for preset in CONSOLES[self.console.name][PRESETS]:
+                self._presetDropdown.addItem(preset)
         
+        
+        
+    
     @Slot()
     def open_button_combos(self) -> None:
         if not self._presetDropdown.currentText():
             name, ok = QInputDialog.getText(self, 'Ummm', 'I need somewhere to save these combos.\n\nGive me a Preset name, please.')
             if ok:
-                CONSOLES[self.console.consoleName][PRESETS][name] = empty.PRESET
+                CONSOLES[self.console.name][PRESETS][name] = empty.PRESET
                 self._presetDropdown.addItem(name)
                 self._presetDropdown.setCurrentText(name)
                 update_console_configs_file()
@@ -102,7 +133,7 @@ class ConfigManager(QFrame):
         name, ok = QInputDialog.getText(self, "New Preset", "Preset Name")
         if ok:
             self.console.clear_controls()
-            CONSOLES[self.console.consoleName][PRESETS][name] = empty.PRESET
+            CONSOLES[self.console.name][PRESETS][name] = empty.PRESET
             self._presetDropdown.addItem(name)
             self._presetDropdown.setCurrentText(name)
             update_console_configs_file()
@@ -111,7 +142,7 @@ class ConfigManager(QFrame):
     def update_preset_controls(self) -> None:
         preset = self._presetDropdown.currentText()
         controls = self.console.get_controls()
-        CONSOLES[self.console.consoleName][PRESETS][preset][CONTROLS] = controls
+        CONSOLES[self.console.name][PRESETS][preset][CONTROLS] = controls
         update_console_configs_file()
 
 
@@ -185,7 +216,7 @@ class KeyboardButtonInputs(QFrame):
 class Gameboy(QFrame):
     def __init__(self):
         super().__init__()
-        self.consoleName = GAMEBOY
+        self.name = GAMEBOY
         self._buttons: list[KeyboardButtonInputs] = []
         
         mainLayout = wdgts.NoPadVBoxLayout()
