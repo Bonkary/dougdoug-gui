@@ -117,6 +117,38 @@ class keys:
 
 @dataclass
 class gui:
+    @dataclass
+    class dialog:
+        COMBO_BUTTON_INSTRUCTIONS = '\n'.join([
+            "I'm sure you see the button names under me.\n",
+            "I need you to type the ones on the right into the 'Key #' box.\n",
+            "Don't mess it up.\n",
+        ])
+        
+        REWATCH_TUTORIAL_TEXT = [
+            "I'm going to tell you what you can do on the screen behind me.",
+            "Please pay attention because I am not doing this again.",
+            "In the 'Keyboard' field, you're going to put the key you have bound to that button. You can see those by clicking the button on the top right.",
+            "In the 'Press Command' field, you're going to put what you want your chat to type to press that button.",
+            f"In the 'Hold Command' field, it's the same idea as the above one. Except it holds the button for {BUTTON_HOLD_INTERVAL} seconds.",
+            "Still following?",
+            "You can setup Button Combos by clicking the very obvious button for it after you select a console.",
+            "Instructions will follow.",
+            "Bye."
+        ]
+        
+        TUTORIAL_TEXT = [
+            "I'm going to tell you what you can do on the screen behind me.",
+            "On the top left, put in your Twitch username. Correct capitalization matters."
+            "In the 'Keyboard' field, you're going to put the key you have bound to that button. You can see those by clicking the button on the top right.",
+            "In the 'Press Command' field, you're going to put what you want your chat to type to press that button.",
+            f"In the 'Hold Command' field, it's the same idea as the above one. Except it holds the button for {BUTTON_HOLD_INTERVAL} seconds.",
+            "You can setup Button Combos by clicking the very obvious button for it after you select a console.",
+            "Instructions will follow.",
+            "Have fun. o7",
+            "(You can close me now. I'm done. I appreciate the patience tho.)"
+        ]
+
     DEFAULT_FONT = DefaultFont()
     
     ALIGN_LEFT = Qt.AlignmentFlag.AlignLeft
@@ -129,6 +161,15 @@ class gui:
     RIGHT_TO_LEFT = QBoxLayout.Direction.RightToLeft
     TOP_TO_BOTTOM = QBoxLayout.Direction.TopToBottom
     BOTTOM_TO_TOP = QBoxLayout.Direction.BottomToTop
+    
+    MAIN_WINDOW_WIDTH = 1600
+    MAIN_WINDOW_HEIGHT = 900
+    
+    KEYMAP_WINDOW_WIDTH = 800
+    KEYMAP_WINDOW_HEIGHT = 200
+   
+    COMBO_WINDOW_WIDTH = 1200
+    COMBO_WINDOW_HEIGHT = 500
 
 @dataclass
 class consoles:
@@ -149,37 +190,6 @@ class schemes:
         GAMECUBE: EMPTY_SCHEME
     }    
 
-@dataclass
-class text:
-    COMBO_BUTTON_INSTRUCTIONS = '\n'.join([
-        "I'm sure you see the button names under me.\n",
-        "I need you to type the ones on the right into the 'Key #' box.\n",
-        "Don't mess it up.\n",
-    ])
-    
-    REWATCH_TUTORIAL_TEXT = [
-        "I'm going to tell you what you can do on the screen behind me.",
-        "Please pay attention because I am not doing this again.",
-        "In the 'Keyboard' field, you're going to put the key you have bound to that button. You can see those by clicking the button on the top right.",
-        "In the 'Press Command' field, you're going to put what you want your chat to type to press that button.",
-        f"In the 'Hold Command' field, it's the same idea as the above one. Except it holds the button for {BUTTON_HOLD_INTERVAL} seconds.",
-        "Still following?",
-        "You can setup Button Combos by clicking the very obvious button for it after you select a console.",
-        "Instructions will follow.",
-        "Bye."
-    ]
-    
-    TUTORIAL_TEXT = [
-        "I'm going to tell you what you can do on the screen behind me.",
-        "On the top left, put in your Twitch username. Correct capitalization matters."
-        "In the 'Keyboard' field, you're going to put the key you have bound to that button. You can see those by clicking the button on the top right.",
-        "In the 'Press Command' field, you're going to put what you want your chat to type to press that button.",
-        f"In the 'Hold Command' field, it's the same idea as the above one. Except it holds the button for {BUTTON_HOLD_INTERVAL} seconds.",
-        "You can setup Button Combos by clicking the very obvious button for it after you select a console.",
-        "Instructions will follow.",
-        "Have fun. o7",
-        "(You can close me now. I'm done. I appreciate the patience tho.)"
-    ]
 
 @dataclass
 class colors:

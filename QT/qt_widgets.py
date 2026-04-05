@@ -4,24 +4,19 @@ from PySide6.QtWidgets import *
 from qt_constants import *
 
 
-
-
 class NamedDropdown(QFrame):
     def __init__(self, *, title: str, titlePlacement: str, titleFont: QFont = gui.DEFAULT_FONT):
         super().__init__()
         self.setMinimumHeight(0)
         match titlePlacement:
             case 'top':
-                mainLayout = QVBoxLayout()
+                mainLayout = NoPadVBoxLayout()
                 mainLayout.setDirection(gui.TOP_TO_BOTTOM)
             case 'side':
-                mainLayout = QHBoxLayout()
+                mainLayout = NoPadHBoxLayout()
                 mainLayout.setDirection(gui.LEFT_TO_RIGHT)
             case _: 
                 raise ValueError(f"{titlePlacement} is not a valid value (must be 'top' or 'side')")
-        mainLayout.setAlignment(gui.ALIGN_TOP)
-        mainLayout.setContentsMargins(0,0,0,0)
-        mainLayout.setSpacing(0)
         self.setLayout(mainLayout)
         
         titleLabel = QLabel(text=title)
@@ -34,28 +29,22 @@ class NamedDropdown(QFrame):
         
         mainLayout.addWidget(titleLabel, alignment=gui.ALIGN_CENTER)
         mainLayout.addWidget(dropdown)
-
+            
 class NamedLineEdit(QFrame):
     def __init__(self, name: str, namePlacement: str, titleFont: QFont = gui.DEFAULT_FONT, width: int = 100):
         super().__init__()
         match namePlacement:
             case 'top':
-                mainLayout = QVBoxLayout()
+                mainLayout = NoPadVBoxLayout()
                 mainLayout.setDirection(gui.TOP_TO_BOTTOM)
                 alignment = gui.ALIGN_CENTER
             case 'side':
-                mainLayout = QHBoxLayout()
+                mainLayout = NoPadHBoxLayout()
                 mainLayout.setDirection(gui.LEFT_TO_RIGHT)
                 alignment = gui.ALIGN_RIGHT
             case _: 
                 raise ValueError(f"{namePlacement} is not a valid value (must be 'top' or 'side')")
-        
-        mainLayout.setAlignment(gui.ALIGN_TOP)
-        mainLayout.setContentsMargins(0,0,0,0)
-        mainLayout.setSpacing(0)
-        
         self.setLayout(mainLayout)
-        mainLayout.setSpacing(0)
         
         titleLabel = QLabel(text=name)
         titleLabel.setFont(gui.DEFAULT_FONT)
@@ -68,3 +57,18 @@ class NamedLineEdit(QFrame):
         mainLayout.addSpacing(7)
         mainLayout.addWidget(entry, alignment)
 
+class NoPadHBoxLayout(QHBoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.setAlignment(gui.ALIGN_TOP|gui.ALIGN_CENTER)
+        self.setContentsMargins(0,0,0,0)
+        self.setSpacing(0)
+        
+class NoPadVBoxLayout(QVBoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.setAlignment(gui.ALIGN_TOP|gui.ALIGN_CENTER)
+        self.setContentsMargins(0,0,0,0)
+        self.setSpacing(0)
