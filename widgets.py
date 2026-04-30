@@ -1,6 +1,7 @@
 import sys
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import *
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QLabel, QComboBox, QLineEdit
+from PySide6.QtGui import QPalette
 from constants import *
 
 
@@ -90,3 +91,86 @@ class NoPadVBoxLayout(QVBoxLayout):
         self.setAlignment(gui.ALIGN_TOP|gui.ALIGN_CENTER)
         self.setContentsMargins(0,0,0,0)
         self.setSpacing(0)
+        
+class KeyboardButtonInputs(QFrame):
+    def __init__(self, *, name: str):
+        super().__init__()
+        self.setFrameStyle(QFrame.Box | QFrame.Plain)
+        self.setLineWidth(5)
+        
+        # BORDER COLOR
+        borderColor = self.palette()
+        borderColor.setColor(QPalette.WindowText, colors.DARK_PURPLE)
+        self.setPalette(borderColor)
+        
+        rootLayout = NoPadVBoxLayout()
+        rootLayout.setContentsMargins(20,20,20,20)
+        self.setLayout(rootLayout)
+        
+        # ACTUAL WIDGET STARTS HERE
+        mainFrame = QFrame()
+        mainTextColor = mainFrame.palette()
+        mainTextColor.setColor(QPalette.WindowText, 'white')
+        mainFrame.setPalette(mainTextColor)
+        
+        mainLayout = NoPadVBoxLayout()
+        mainFrame.setLayout(mainLayout)
+        
+        titleFont = QFont()
+        titleFont.setUnderline(True)
+        titleFont.setPixelSize(18)
+        title = QLabel(text=name)
+        title.setAlignment(gui.ALIGN_CENTER)
+        title.setFont(titleFont)
+        
+        
+        self._keyboardInput = NamedLineEdit(name="Keyboard", namePlacement='side')
+        self._pressCmdInput = NamedLineEdit(name="Press Command", namePlacement='side')
+        self._holdCmdInput = NamedLineEdit(name="Hold Command", namePlacement='side')
+        self._probInput = NamedLineEdit(name="Probability (0-100)", namePlacement='side')
+        
+        mainLayout.addWidget(title)
+        mainLayout.addSpacing(15)
+        mainLayout.addWidget(self._keyboardInput)
+        mainLayout.addSpacing(10)
+        mainLayout.addWidget(self._pressCmdInput)
+        mainLayout.addSpacing(10)
+        mainLayout.addWidget(self._holdCmdInput)
+        mainLayout.addSpacing(10)
+        mainLayout.addWidget(self._probInput)
+        
+        rootLayout.addWidget(mainFrame, alignment=gui.ALIGN_CENTER)
+        rootLayout.addStretch(True)
+        
+    def get_inputs(self) -> dict:
+        try:
+            probInput = int(self._probInput.getText())
+        except ValueError:
+            if not probInput:
+                probInput = 100
+            else:
+                print("prob needs to be a whole number")
+                probInput = 100 # DEV STUFF
+                
+        return {
+            KEY: self._keyboardInput.getText().lower(),
+            PRESS: self._pressCmdInput.getText().lower(),
+            HOLD: self._holdCmdInput.getText().lower(),
+            PROBABILITY: probInput
+        }
+
+    def load_inputs(self, inputs: dict):
+        self._keyboardInput.setText(inputs[KEY])
+        self._pressCmdInput.setText(inputs[PRESS])
+        self._holdCmdInput.setText(inputs[HOLD])
+        self._probInput.setText(str(inputs[PROBABILITY]))
+    
+    def clear_inputs(self) -> None:
+        self._keyboardInput.setText("")
+        self._pressCmdInput.setText("")
+        self._holdCmdInput.setText("")
+         
+
+        
+        
+        

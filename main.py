@@ -1,7 +1,7 @@
 import sys
 import threading
 from PySide6.QtGui import QFont
-from PySide6.QtCore import Qt, Slot, Signal
+from PySide6.QtCore import Qt, Slot, Signal, QThread, QThreadPool
 from PySide6.QtWidgets import *
 from constants import *
 import widgets as wdgts
@@ -9,11 +9,18 @@ import popups as popups
 from consoles import ConsoleContainer
 from configurations import *
 from platform_connection import *
-from keyboard_control import keyboard_execute_thread, PRESET_FOR_THREAD
+from logic.thread_objects import EXEC_THREAD, KeypressExecutor
 
+#TODO: it fuckin wipes your inputs when you didnt put in a preset name then click "new"
 class TwitchPlays(QWidget):
     def __init__(self):
         super().__init__()
+        
+        self._executor = KeypressExecutor()
+        self._executor.moveToThread(EXEC_THREAD)
+        EXEC_THREAD.started.connect(self._executor.run)
+        
+        ## UI ##
         self.setFixedSize(gui.MAIN_WINDOW_WIDTH, gui.MAIN_WINDOW_HEIGHT)
         self.setWindowTitle("Ez Twitch Plays")
         
@@ -55,25 +62,29 @@ class TwitchPlays(QWidget):
     
     @Slot()
     def start_playing(self) -> None:
-        KILL_THREADS_FLAG.clear()
         self._footer.playButtonContainer.setCurrentIndex(STOP_PLAYING_BUTTON_INDEX)
         preset = self.consoleContainer.get_preset()
+        self._executor.set_preset(preset)
         
-        TWITCH_MANAGER.connect(channel_name=SETTINGS[TWITCH_CHANNEL])
+        #TODO: send the preset somewhere thru slot/signal
+        if not TWITCH_MANAGER.is_connected():
+            TWITCH_MANAGER.connect(channel_name=SETTINGS[TWITCH_CHANNEL])
         
-        threading.Thread(target=TWITCH_MANAGER.listen_forever_thread, daemon=True).start()
-        threading.Thread(target=keyboard_execute_thread, args=(preset,), daemon=True).start()
-        
-        LISTENER_THREAD_FLAG.set()
-        EXECUTOR_THREAD_FLAG.set()
+        if not EXEC_THREAD.isRunning():
+            EXEC_THREAD.start()
+        else:
+            self._executor.resume()
         
     @Slot()
     def stop_playing(self) -> None:
         self._footer.playButtonContainer.setCurrentIndex(START_PLAYING_BUTTON_INDEX)
-        KILL_THREADS_FLAG.set()
-        LISTENER_THREAD_FLAG.clear()
-        EXECUTOR_THREAD_FLAG.clear()
-        print("AHHHH")
+        self._executor.pause()
+    
+    def exit(self) -> None:
+        self._executor.pause()
+        self._executor.kill()
+        time.sleep(2) # Let the thread finish? I hate threads.
+        EXEC_THREAD.terminate()
 
 class Header(QFrame):
     def __init__(self):
@@ -194,4 +205,5 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = TwitchPlays()
     window.show()
+    app.aboutToQuit.connect(window.exit)
     sys.exit(app.exec())

@@ -26,6 +26,13 @@ COMBO_BUTTONS = 'combo_buttons'
 PRESETS = 'presets'
 CONTROLS = 'controls'
 TWITCH_CHANNEL = 'twitch_channel'
+PRESS = 'press'
+HOLD = 'hold'
+KEY = 'key'
+KEY_1 = 'key1'
+KEY_2 = 'key2'
+VALID_CMDS = 'valid_cmds'
+PROBABILITY = 'probability'
 
 
 
@@ -184,10 +191,10 @@ class gui:
     BOTTOM_TO_TOP = QBoxLayout.Direction.BottomToTop
     
     MAIN_WINDOW_WIDTH = 1600
-    MAIN_WINDOW_HEIGHT = 1000
+    MAIN_WINDOW_HEIGHT = 1100
     
     KEYMAP_WINDOW_WIDTH = 800
-    KEYMAP_WINDOW_HEIGHT = 200
+    KEYMAP_WINDOW_HEIGHT = 250
    
     COMBO_WINDOW_WIDTH = 1200
     COMBO_WINDOW_HEIGHT = 500

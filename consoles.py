@@ -8,7 +8,6 @@ import popups as popups
 from configurations import *
 
 
-
 class ConsoleContainer(QFrame):
     def __init__(self):
         super().__init__()
@@ -38,7 +37,7 @@ class ConsoleContainer(QFrame):
     def get_preset(self) -> dict:
         return self.activeConsole.get_loaded_preset()
 
-class ConfigManager(QFrame):
+class ConfigButtonsManager(QFrame):
     def __init__(self, console: Gameboy):
         super().__init__()
         self.console = console
@@ -111,7 +110,6 @@ class ConfigManager(QFrame):
             for preset in CONSOLES[self.console.name][PRESETS]:
                 self._presetDropdown.addItem(preset)
         
-
     @Slot()
     def open_button_combos(self) -> None:
         if not self._presetDropdown.currentText():
@@ -121,6 +119,8 @@ class ConfigManager(QFrame):
                 self._presetDropdown.addItem(name)
                 self._presetDropdown.setCurrentText(name)
                 update_console_configs_file()
+            else:
+                return
         
         if not self.comboButtonPopup.isVisible():
             self.comboButtonPopup.exec()
@@ -139,76 +139,17 @@ class ConfigManager(QFrame):
     
     @Slot(str)
     def update_preset_controls(self) -> None:
-        preset = self._presetDropdown.currentText()
+        presetID = self._presetDropdown.currentText()
         controls = self.console.get_controls()
-        CONSOLES[self.console.name][PRESETS][preset][CONTROLS] = controls
+        CONSOLES[self.console.name][PRESETS][presetID][CONTROLS] = controls
+        
+        validCmds = []
+        for key in controls:
+            validCmds.append(controls[key][PRESS])
+            validCmds.append(controls[key][HOLD])
+        CONSOLES[self.console.name][PRESETS][presetID][VALID_CMDS] = validCmds
+        
         update_console_configs_file()
-
-
-class KeyboardButtonInputs(QFrame):
-    def __init__(self, *, name: str):
-        super().__init__()
-        self.setFrameStyle(QFrame.Box | QFrame.Plain)
-        self.setLineWidth(5)
-        
-        # BORDER COLOR
-        borderColor = self.palette()
-        borderColor.setColor(QPalette.WindowText, colors.DARK_PURPLE)
-        self.setPalette(borderColor)
-        
-        rootLayout = wdgts.NoPadVBoxLayout()
-        rootLayout.setContentsMargins(20,20,20,20)
-        self.setLayout(rootLayout)
-        
-        # ACTUAL WIDGET STARTS HERE
-        mainFrame = QFrame()
-        mainTextColor = mainFrame.palette()
-        mainTextColor.setColor(QPalette.WindowText, 'white')
-        mainFrame.setPalette(mainTextColor)
-        
-        mainLayout = wdgts.NoPadVBoxLayout()
-        mainFrame.setLayout(mainLayout)
-        
-        titleFont = QFont()
-        titleFont.setUnderline(True)
-        titleFont.setPixelSize(18)
-        title = QLabel(text=name)
-        title.setAlignment(gui.ALIGN_CENTER)
-        title.setFont(titleFont)
-        
-        
-        self._keyboardInput = wdgts.NamedLineEdit(name="Keyboard", namePlacement='side')
-        self._pressCmdInput = wdgts.NamedLineEdit(name="Press Command", namePlacement='side')
-        self._holdCmdInput = wdgts.NamedLineEdit(name="Hold Command", namePlacement='side')
-        
-        mainLayout.addWidget(title)
-        mainLayout.addSpacing(15)
-        mainLayout.addWidget(self._keyboardInput)
-        mainLayout.addSpacing(10)
-        mainLayout.addWidget(self._pressCmdInput)
-        mainLayout.addSpacing(10)
-        mainLayout.addWidget(self._holdCmdInput)
-        
-        rootLayout.addWidget(mainFrame, alignment=gui.ALIGN_CENTER)
-        rootLayout.addStretch(True)
-        
-    def get_inputs(self) -> dict:
-        return {
-            'key': self._keyboardInput.getText().lower(),
-            'press': self._pressCmdInput.getText().lower(),
-            'hold': self._holdCmdInput.getText().lower()
-        }
-
-    def load_inputs(self, inputs: dict):
-        self._keyboardInput.setText(inputs['key'])
-        self._pressCmdInput.setText(inputs['press'])
-        self._holdCmdInput.setText(inputs['hold'])
-    
-    def clear_inputs(self) -> None:
-        self._keyboardInput.setText("")
-        self._pressCmdInput.setText("")
-        self._holdCmdInput.setText("")
-        
 
 
 # Consoles
@@ -217,7 +158,7 @@ class Gameboy(QFrame):
         super().__init__()
         self.name = GAMEBOY
         self.activePreset: str = None
-        self._buttons: list[KeyboardButtonInputs] = []
+        self._buttons: list[wdgts.KeyboardButtonInputs] = []
         
         mainLayout = wdgts.NoPadVBoxLayout()
         self.setLayout(mainLayout)
@@ -225,10 +166,10 @@ class Gameboy(QFrame):
         columnSpacing = 30
         # Row 1
         row1 = wdgts.NoPadHBoxLayout()
-        self._buttonA = KeyboardButtonInputs(name='A Button')
-        self._buttonB = KeyboardButtonInputs(name="B Button")
-        self._bumperR = KeyboardButtonInputs(name="Right Bumper")
-        self._bumperL = KeyboardButtonInputs(name="Left Bumper")
+        self._buttonA = wdgts.KeyboardButtonInputs(name='A Button')
+        self._buttonB = wdgts.KeyboardButtonInputs(name="B Button")
+        self._bumperR = wdgts.KeyboardButtonInputs(name="Right Bumper")
+        self._bumperL = wdgts.KeyboardButtonInputs(name="Left Bumper")
         
         row1.addWidget(self._buttonA)
         row1.addSpacing(columnSpacing)
@@ -240,10 +181,10 @@ class Gameboy(QFrame):
         
         # Row 2
         row2 = wdgts.NoPadHBoxLayout()
-        self._dpadUp = KeyboardButtonInputs(name="D-Pad Up")
-        self._dpadDown = KeyboardButtonInputs(name="D-Pad Down")
-        self._dpadLeft = KeyboardButtonInputs(name="D-Pad Left")
-        self._dpadRight = KeyboardButtonInputs(name="D-Pad Right")
+        self._dpadUp = wdgts.KeyboardButtonInputs(name="D-Pad Up")
+        self._dpadDown = wdgts.KeyboardButtonInputs(name="D-Pad Down")
+        self._dpadLeft = wdgts.KeyboardButtonInputs(name="D-Pad Left")
+        self._dpadRight = wdgts.KeyboardButtonInputs(name="D-Pad Right")
         
         row2.addWidget(self._dpadUp)
         row2.addSpacing(columnSpacing)
@@ -255,8 +196,8 @@ class Gameboy(QFrame):
         
         # Row 3
         row3 = wdgts.NoPadHBoxLayout()
-        self._select = KeyboardButtonInputs(name="Select")
-        self._start = KeyboardButtonInputs(name='Start')
+        self._select = wdgts.KeyboardButtonInputs(name="Select")
+        self._start = wdgts.KeyboardButtonInputs(name='Start')
         
         row3.addWidget(self._select)
         row3.addSpacing(columnSpacing)
@@ -264,7 +205,7 @@ class Gameboy(QFrame):
         
         
         # Config Manager
-        configManager = ConfigManager(console=self)
+        configManager = ConfigButtonsManager(console=self)
         
         mainLayout.addLayout(row1)
         mainLayout.addSpacing(columnSpacing)
@@ -321,8 +262,10 @@ class Gameboy(QFrame):
             self.clear_controls()
 
     def get_loaded_preset(self) -> dict:
-        print(self.activePreset)
-        return CONSOLES[GAMEBOY][PRESETS][self.activePreset]
+        if self.activePreset:
+            return CONSOLES[GAMEBOY][PRESETS][self.activePreset]
+        else:
+            print("Gotta handle there not being a preset loaded")
 
     def clear_controls(self) -> None:
         for button in self._buttons:

@@ -18,18 +18,12 @@ from threading import Event
 MAX_TIME_TO_WAIT_FOR_LOGIN = 3
 YOUTUBE_FETCH_INTERVAL = 1
 REGEX_PATTERN = b'^(?::(?:([^ !\r\n]+)![^ \r\n]*|[^ \r\n]*) )?([^ \r\n]+)(?: ([^:\r\n]*))?(?: :([^\r\n]*))?\r\n'
+REGEX_CORE = re.compile(REGEX_PATTERN, re.MULTILINE)
 IRC_HOST = 'irc.chat.twitch.tv'
 IRC_PORT = 6667
 NO_NEW_MESSAGE_TIMEOUT = 5
 
 IRC_CMDS_TO_IGNORE = ['JOIN', '001', '002', '003', '004', '375', '372', '376', '353', '366']
-IRC_MESSAGE_QUEUE_1 = queue.Queue(maxsize=50)
-IRC_MESSAGE_QUEUE_OVERFLOW = queue.Queue(maxsize=50)
-PRESET_QUEUE = queue.Queue(maxsize=1)
-
-LISTENER_THREAD_FLAG = Event()
-EXECUTOR_THREAD_FLAG = Event()
-KILL_THREADS_FLAG = Event()
 
 NAME = 1
 COMMAND = 2
@@ -46,7 +40,6 @@ class Twitch():
     '''
     
     def __init__(self):
-        self._regexCore = re.compile(REGEX_PATTERN, re.MULTILINE)
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._loginOk = False
         self._channelName = ''
@@ -78,7 +71,7 @@ class Twitch():
         
         self._socket.settimeout(10)
         ircMessage = self._socket.recv(4096)
-        matches = list(self._regexCore.finditer(ircMessage))
+        matches = list(REGEX_CORE.finditer(ircMessage))
         for match in matches:
             command = (match.group(COMMAND) or b'').decode(errors='replace')
             if (command == '001' or command == 'JOIN') and not self._loginOk:
@@ -96,14 +89,14 @@ class Twitch():
         check = None
         try:
             check = self._socket.recv(1024)
+            if check:
+                isConnected = True
         except OSError as err:
             if 'not connected' in str(err):
                 isConnected = False
             else:
                 print(f"Idk what the hell went wrong: {err}")
 
-        if check:
-            isConnected = True
         return isConnected
     
     def reconnect(self, *, delay: int = 0) -> None:
@@ -116,55 +109,19 @@ class Twitch():
         time.sleep(delay)
         self.connect(self._channelName)
     
-    def extract_chat_message(self, irc_message: bytes, loggin_in: bool = False) -> dict:
-        '''
-        Takes an IRC message and takes out what we actually want from it
-        
-        Arguments:
-            irc_message - The IRC message to get the chat message from.
-        '''
-        message: dict = None
-        matches = list(self._regexCore.finditer(irc_message))
-        for match in matches:
-            messageData = ({
-                'name':     (match.group(NAME) or b'').decode(errors='replace'),
-                'command':  (match.group(COMMAND) or b'').decode(errors='replace'),
-                'params':   list(map(lambda p: p.decode(errors='replace'), (match.group(PARAMS) or b'').split(b' '))),
-                'trailing': (match.group(TRAILING) or b'').decode(errors='replace'),
-            })
+    def send(self, data: bytes) -> None:
+        self._socket.send(data)
+    
+    def next_irc_message(self) -> bytes | None:
+        try:
+            newMessage = self._socket.recv(4096)
+        except socket.timeout:
+            newMessage = self.next_irc_message()
+        except ConnectionAbortedError:
+            self.reconnect()
 
-        cmd = messageData['command']
-        if cmd == 'PRIVMSG':
-            message = {
-                'username': messageData['name'],
-                'message': messageData['trailing']
-            }
-        elif cmd == 'PING':
-            self._socket.send(b'PONG :tmi.twitch.tv\r\n')
-        elif cmd == 'NOTICE':
-            print('Server notice:', irc_message['params'], irc_message['trailing'])
-        elif cmd in IRC_CMDS_TO_IGNORE:
-            pass
-        else:
-            print(f"Unhandled IRC message: {irc_message}")
-        
-        return message
-
-    def listen_forever_thread(self) -> None:
-        print("Listening...")
-        while not KILL_THREADS_FLAG.is_set():
-            LISTENER_THREAD_FLAG.wait()
-            print('lis')
-            try:
-                ircMessage = self._socket.recv(4096)
-                if ircMessage and not b'JOIN' in ircMessage:
-                    if not IRC_MESSAGE_QUEUE_1.full():
-                        IRC_MESSAGE_QUEUE_1.put(ircMessage)
-                    elif not IRC_MESSAGE_QUEUE_OVERFLOW.full():
-                        IRC_MESSAGE_QUEUE_OVERFLOW.put(ircMessage)
-            except socket.timeout:
-                pass
-            except ConnectionAbortedError:
-                self.reconnect()
-        
+        return newMessage
+    
+    def pong(self) -> None:
+        self.send(b'PONG :tmi.twitch.tv\r\n')
 
