@@ -141,7 +141,7 @@ class keys:
         'print screen': 'prntscrn'
     }
     HOLD_KEY_DURATION = 2
-    PRESS_TIME_DURATION = 0.4
+    PRESS_TIME_DURATION = 0.2
 
 @dataclass
 class gui:

@@ -72,13 +72,23 @@ class WorkerSignals(QObject):
     execute = Signal()
 
 class Execute(QRunnable):
-    def __init__(self, key: str, cmdType: str):
+    def __init__(self, key: str | tuple, cmdType: str):
         super().__init__()
         self._key = key
         self._cmdType = cmdType
         
     def run(self) -> None:
-        print("sup")
+        if type(self._key) == tuple:
+            if self._cmdType == PRESS:
+                cntrls.press_combo_key(self._key)
+            elif self._cmdType == HOLD:
+                cntrls.hold_combo_key(self._key)
+        else:
+            if self._cmdType == PRESS:
+                cntrls.press_key(self._key)
+            elif self._cmdType == HOLD:
+                cntrls.hold_key(self._key)
+        
 
 class KeypressExecutor(QObject):
     def __init__(self, parent=None):
