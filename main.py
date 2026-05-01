@@ -15,7 +15,6 @@ from logic.thread_objects import EXEC_THREAD, KeypressExecutor
 class TwitchPlays(QWidget):
     def __init__(self):
         super().__init__()
-        
         self._executor = KeypressExecutor()
         self._executor.moveToThread(EXEC_THREAD)
         EXEC_THREAD.started.connect(self._executor.run)
@@ -52,7 +51,7 @@ class TwitchPlays(QWidget):
         mainLayout.addSpacing(20)
         mainLayout.addWidget(consoleDropdown, alignment=gui.ALIGN_CENTER)
         mainLayout.addSpacing(20)
-        mainLayout.addWidget(self.consoleContainer, alignment=gui.ALIGN_CENTER)
+        mainLayout.addWidget(self.consoleContainer, alignment=gui.ALIGN_LEFT)
         mainLayout.addSpacing(20)
         mainLayout.addWidget(self._footer)
         
@@ -66,7 +65,6 @@ class TwitchPlays(QWidget):
         preset = self.consoleContainer.get_preset()
         self._executor.set_preset(preset)
         
-        #TODO: send the preset somewhere thru slot/signal
         if not TWITCH_MANAGER.is_connected():
             TWITCH_MANAGER.connect(channel_name=SETTINGS[TWITCH_CHANNEL])
         
@@ -118,7 +116,7 @@ class Header(QFrame):
         # Title
         titleFont = QFont()
         titleFont.setWeight(QFont.Weight.Bold)
-        titleFont.setPixelSize(30)
+        titleFont.setPixelSize(20)
         titleLabel = QLabel("Ez Twitch Plays")
         titleLabel.setFont(titleFont)
         
@@ -138,7 +136,6 @@ class Header(QFrame):
         buttonContainer.addWidget(tutorialButton)
         buttonContainer.addSpacing(20)
         buttonContainer.addWidget(keymappingsButton)
-        
         
         mainLayout.addSpacing(50)
         mainLayout.addLayout(twitchInputContainer)

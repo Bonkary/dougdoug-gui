@@ -12,11 +12,12 @@ class ConsoleContainer(QFrame):
     def __init__(self):
         super().__init__()
         self.activeConsole = None
+        
         rootLayout = wdgts.NoPadHBoxLayout()
         self.setLayout(rootLayout)
         
         mainLayout = QStackedLayout()
-        mainLayout.setAlignment(gui.ALIGN_CENTER)
+        mainLayout.setAlignment(gui.ALIGN_LEFT)
         mainLayout.setContentsMargins(0,0,0,0)
         mainLayout.setSpacing(0)
         
@@ -163,7 +164,7 @@ class Gameboy(QFrame):
         mainLayout = wdgts.NoPadVBoxLayout()
         self.setLayout(mainLayout)
         
-        columnSpacing = 30
+        columnSpacing = 10
         # Row 1
         row1 = wdgts.NoPadHBoxLayout()
         self._buttonA = wdgts.KeyboardButtonInputs(name='A Button')
@@ -196,6 +197,7 @@ class Gameboy(QFrame):
         
         # Row 3
         row3 = wdgts.NoPadHBoxLayout()
+        row3.setAlignment(gui.ALIGN_LEFT)
         self._select = wdgts.KeyboardButtonInputs(name="Select")
         self._start = wdgts.KeyboardButtonInputs(name='Start')
         
@@ -213,7 +215,7 @@ class Gameboy(QFrame):
         mainLayout.addSpacing(columnSpacing)
         mainLayout.addLayout(row3)
         mainLayout.addSpacing(20)
-        mainLayout.addWidget(configManager)
+        # mainLayout.addWidget(configManager)
         mainLayout.addStretch(True)
         
         self._buttons.append(self._buttonA)
@@ -270,3 +272,23 @@ class Gameboy(QFrame):
     def clear_controls(self) -> None:
         for button in self._buttons:
             button.clear_inputs()
+            
+            
+            
+class Gamecube(QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)   
+        self.name = GAMECUBE
+        self.activePreset: str = None
+        self._buttons: list[wdgts.KeyboardButtonInputs] = []
+
+        mainLayout = wdgts.NoPadVBoxLayout()
+        self.setLayout(mainLayout)
+        
+        
+
+
+
+
+
+

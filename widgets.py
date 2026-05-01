@@ -96,21 +96,23 @@ class KeyboardButtonInputs(QFrame):
     def __init__(self, *, name: str):
         super().__init__()
         self.setFrameStyle(QFrame.Box | QFrame.Plain)
-        self.setLineWidth(5)
+        self.setLineWidth(1)
         
         # BORDER COLOR
+        self.setAutoFillBackground(True)
         borderColor = self.palette()
         borderColor.setColor(QPalette.WindowText, colors.DARK_PURPLE)
         self.setPalette(borderColor)
         
+        equalMargin = 8
         rootLayout = NoPadVBoxLayout()
-        rootLayout.setContentsMargins(20,20,20,20)
+        rootLayout.setContentsMargins(equalMargin,equalMargin,equalMargin,equalMargin)
         self.setLayout(rootLayout)
         
         # ACTUAL WIDGET STARTS HERE
         mainFrame = QFrame()
         mainTextColor = mainFrame.palette()
-        mainTextColor.setColor(QPalette.WindowText, 'white')
+        mainTextColor.setColor(QPalette.WindowText, colors.WHITE)
         mainFrame.setPalette(mainTextColor)
         
         mainLayout = NoPadVBoxLayout()
@@ -118,7 +120,7 @@ class KeyboardButtonInputs(QFrame):
         
         titleFont = QFont()
         titleFont.setUnderline(True)
-        titleFont.setPixelSize(18)
+        titleFont.setPixelSize(gui.DEFAULT_FONT.pixelSize()+3)
         title = QLabel(text=name)
         title.setAlignment(gui.ALIGN_CENTER)
         title.setFont(titleFont)

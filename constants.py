@@ -11,7 +11,7 @@ class DefaultFont(QFont):
     def __init__(self):
         super().__init__()
         
-        self.setPixelSize(17)
+        self.setPixelSize(13)
 
 TWITCH_MANAGER = Twitch()
 
@@ -83,7 +83,6 @@ class empty:
         COMBO_BUTTONS: []
     }
     
-
 @dataclass
 class keys:
     # AVAILABLE_KEYS = KEYBOARD_MAPPING
@@ -191,7 +190,7 @@ class gui:
     BOTTOM_TO_TOP = QBoxLayout.Direction.BottomToTop
     
     MAIN_WINDOW_WIDTH = 1600
-    MAIN_WINDOW_HEIGHT = 1100
+    MAIN_WINDOW_HEIGHT = 900
     
     KEYMAP_WINDOW_WIDTH = 800
     KEYMAP_WINDOW_HEIGHT = 250
@@ -202,11 +201,12 @@ class gui:
 @dataclass
 class colors:
     DEFAULT_TEXT = 'white' # also maybe #F9F871'
-    TWITCH_PURPLE = '#6441A5'
+    TWITCH_PURPLE = '#5C3B99'
     DARK_PURPLE = '#4c3080'
     GREEN = 'green'
     RED = 'red'
     BLACK = 'black'
+    WHITE = 'white'
     
 @dataclass
 class dirs:
