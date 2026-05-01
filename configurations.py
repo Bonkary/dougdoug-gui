@@ -3,48 +3,53 @@ import json
 import sys
 from constants import *
 
-def write_empty_schemes_file() -> None:
-    with open(files.CONTROL_SCHEMES, 'w') as newFile:
-        newFile.write(json.dumps(schemes.EMPTY_CONTROL_SCHEMES))
+# FILE OPERATIONS
+def write_empty_console_config_file() -> None:
+    with open(files.CONSOLE_CONFIGS, 'w') as newFile:
+        newFile.write(json.dumps(empty.CONSOLES))
 
 def write_empty_settings_file() -> None:
     with open(files.SETTINGS, 'w') as newFile:
-        newFile.write(json.dumps(EMPTY_SETTINGS))
+        newFile.write(json.dumps(empty.SETTINGS))
 
 def update_settings_file() -> None:
     with open(files.SETTINGS, 'w') as settingsFile:
         settingsFile.write(json.dumps(SETTINGS))
 
-def update_control_schemes_file() -> None:
-    with open(files.CONTROL_SCHEMES, 'w') as controlSchemeFile:
-        controlSchemeFile.write(json.dumps(CONTROL_SCHEMES))
+def update_console_configs_file() -> None:
+    with open(files.CONSOLE_CONFIGS, 'w') as controlSchemeFile:
+        controlSchemeFile.write(json.dumps(CONSOLES))
 
 
 if not os.path.exists(dirs.CONFIGS):
     os.mkdir(dirs.CONFIGS)
 
+##################### THE ACTUAL GOOD STUFF #############################
+
+# CONTROLS
 try:
-    with open(files.CONTROL_SCHEMES, 'r') as schemesFile:
+    with open(files.CONSOLE_CONFIGS, 'r') as schemesFile:
         contents = schemesFile.read()
         if not contents:
-            CONTROL_SCHEMES = schemes.EMPTY_CONTROL_SCHEMES
-            write_empty_schemes_file()
+            CONSOLES = empty.CONSOLES
+            write_empty_console_config_file()
         else:
-            CONTROL_SCHEMES = json.loads(contents)
+            CONSOLES = json.loads(contents)
 except FileNotFoundError:
-    CONTROL_SCHEMES = schemes.EMPTY_CONTROL_SCHEMES
-    write_empty_schemes_file()
+    CONSOLES = empty.CONSOLES
+    write_empty_console_config_file()
 
+# SETTINGS
 try:
     with open(files.SETTINGS, 'r') as settingsFile:
         contents = settingsFile.read()
         if not contents:
-            SETTINGS = EMPTY_SETTINGS
+            SETTINGS = empty.SETTINGS
             write_empty_settings_file()
         else:
             SETTINGS = json.loads(contents)
 except FileNotFoundError:
-    SETTINGS = EMPTY_SETTINGS
+    SETTINGS = empty.SETTINGS
     write_empty_settings_file()
 
 

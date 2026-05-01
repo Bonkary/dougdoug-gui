@@ -1,7 +1,19 @@
 from dataclasses import dataclass
 import os
 from pathlib import Path
-from pydirectinput import KEYBOARD_MAPPING
+from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QBoxLayout
+from platform_connection import Twitch
+# from pydirectinput import KEYBOARD_MAPPING
+
+class DefaultFont(QFont):
+    def __init__(self):
+        super().__init__()
+        
+        self.setPixelSize(13)
+
+TWITCH_MANAGER = Twitch()
 
 # COMMON STRINGS
 GAMEBOY = 'Gameboy'
@@ -12,8 +24,17 @@ GAMECUBE = 'Gamecube'
 PC = 'PC'
 COMBO_BUTTONS = 'combo_buttons'
 PRESETS = 'presets'
+CONTROLS = 'controls'
+TWITCH_CHANNEL = 'twitch_channel'
+PRESS = 'press'
+HOLD = 'hold'
+KEY = 'key'
+KEY_1 = 'key1'
+KEY_2 = 'key2'
+VALID_CMDS = 'valid_cmds'
+PROBABILITY = 'probability'
 
-IRC_CMDS_TO_IGNORE = ['JOIN', '001', '002', '003', '004', '375', '372', '376', '353', '366']
+
 
 GAMEBOY_BUTTON_ALIASES = {
             'A': 'A Button',
@@ -28,7 +49,7 @@ GAMEBOY_BUTTON_ALIASES = {
             'start': "Start"
         }
 
-ALL_BUTTON_ALIASES = {
+BUTTON_ALIASES = {
     'Gameboy': GAMEBOY_BUTTON_ALIASES,
 }
 
@@ -37,18 +58,34 @@ MAX_QUEUE_LENGTH = 20
 MAX_WORKERS = 100
 BUTTON_HOLD_INTERVAL = 3
 
-EMPTY_SETTINGS = {
-    'twitch_channel': '',
-    'seen_tutorial': False
-}
 
 
+# Stacked Layout Indexes
+START_PLAYING_BUTTON_INDEX = 0
+STOP_PLAYING_BUTTON_INDEX = 1
+GAMEBOY_INDEX = 0
 
-
+AVAILABLE_CONSOLES = [GAMEBOY, N64, SNES, NES, GAMECUBE, PC] 
 
 @dataclass
+class empty:
+    CONSOLES = {
+        GAMEBOY: {
+            PRESETS: {}
+        }
+    }
+    SETTINGS = {
+        'twitch_channel': '',
+        'seen_tutorial': False
+    }
+    PRESET = {
+        CONTROLS: {},
+        COMBO_BUTTONS: []
+    }
+    
+@dataclass
 class keys:
-    AVAILABLE_KEYS = KEYBOARD_MAPPING
+    # AVAILABLE_KEYS = KEYBOARD_MAPPING
     USER_FRIENDLY_KEYBOARD_MAPPINGS = [
         'Single characters (a, 4, -, etc.)',
         'F# (# = number)',
@@ -102,84 +139,74 @@ class keys:
         'windows key': 'win',
         'print screen': 'prntscrn'
     }
-    HOLD_KEY_DURATION = 3
-    PRESS_TIME_DURATION = 0.7
+    HOLD_KEY_DURATION = 2
+    PRESS_TIME_DURATION = 0.2
 
 @dataclass
 class gui:
-    FONT_NAME = 'helvetica'
-    EQUAL_SIZED_COLUMNS = 'column'
-    EQUAL_SIZED_ROWS = 'rows'
-    MAIN_WINDOW_SIZE = '1500x900'
-    COMBINATIONS_WINDOW_SIZE = '1000x800'
-    KEYMAPPING_WINDOW_SIZE = '600x700'
-    BUTTON_COMBO_WINDOW_SIZE = '1400x850'
-    TUTORIAL_WINDOW_SIZE = '1500x800'
-    NAME_PRESET_POPUP_WINDOW_SIZE = '300x300'
-    MAX_KEY_DISPLAY_ROWS = (len(keys.USER_FRIENDLY_KEYBOARD_MAPPINGS) // 2) + 2
-    
-    # These are just to explain what the grid_columnconfigure aimed to do
-    ONLY_THESE_COLUMNS_EXIST = 1
-    FIXED_SIZE = 1
+    @dataclass
+    class dialog:
+        COMBO_BUTTON_INSTRUCTIONS = '\n'.join([
+            "I'm sure you see the button names under me.\n",
+            "I need you to type the ones on the right into the 'Key #' box.\n",
+            "Don't mess it up.\n",
+        ])
+        
+        REWATCH_TUTORIAL_TEXT = [
+            "I'm going to tell you what you can do on the screen behind me.",
+            "Please pay attention because I am not doing this again.",
+            "In the 'Keyboard' field, you're going to put the key you have bound to that button. You can see those by clicking the button on the top right.",
+            "In the 'Press Command' field, you're going to put what you want your chat to type to press that button.",
+            f"In the 'Hold Command' field, it's the same idea as the above one. Except it holds the button for {BUTTON_HOLD_INTERVAL} seconds.",
+            "Still following?",
+            "You can setup Button Combos by clicking the very obvious button for it after you select a console.",
+            "Instructions will follow.",
+            "Bye."
+        ]
+        
+        TUTORIAL_TEXT = [
+            "I'm going to tell you what you can do on the screen behind me.",
+            "On the top left, put in your Twitch username. Correct capitalization matters."
+            "In the 'Keyboard' field, you're going to put the key you have bound to that button. You can see those by clicking the button on the top right.",
+            "In the 'Press Command' field, you're going to put what you want your chat to type to press that button.",
+            f"In the 'Hold Command' field, it's the same idea as the above one. Except it holds the button for {BUTTON_HOLD_INTERVAL} seconds.",
+            "You can setup Button Combos by clicking the very obvious button for it after you select a console.",
+            "Instructions will follow.",
+            "Have fun. o7",
+            "(You can close me now. I'm done. I appreciate the patience tho.)"
+        ]
 
-@dataclass
-class consoles:
-    AVAILABLE_CONSOLES = [GAMEBOY, N64, SNES, NES, GAMECUBE, PC]
+    DEFAULT_FONT = DefaultFont()
     
-@dataclass
-class schemes:
-    EMPTY_SCHEME = {
-        PRESETS: {}
-        }
+    ALIGN_LEFT = Qt.AlignmentFlag.AlignLeft
+    ALIGN_RIGHT = Qt.AlignmentFlag.AlignRight
+    ALIGN_CENTER = Qt.AlignmentFlag.AlignCenter
+    ALIGN_BOTTOM = Qt.AlignmentFlag.AlignBottom
+    ALIGN_TOP = Qt.AlignmentFlag.AlignTop
     
-    EMPTY_CONTROL_SCHEMES = {
-        GAMEBOY: EMPTY_SCHEME,
-        N64: EMPTY_SCHEME,
-        PC: EMPTY_SCHEME,
-        SNES: EMPTY_SCHEME,
-        NES: EMPTY_SCHEME,
-        GAMECUBE: EMPTY_SCHEME
-    }    
-
-@dataclass
-class text:
-    COMBO_BUTTON_INSTRUCTIONS = '\n'.join([
-        "I'm sure you see the button names under me.\n",
-        "I need you to type the ones on the right into the 'Key #' box.\n",
-        "Don't mess it up.\n",
-    ])
+    LEFT_TO_RIGHT = QBoxLayout.Direction.LeftToRight
+    RIGHT_TO_LEFT = QBoxLayout.Direction.RightToLeft
+    TOP_TO_BOTTOM = QBoxLayout.Direction.TopToBottom
+    BOTTOM_TO_TOP = QBoxLayout.Direction.BottomToTop
     
-    REWATCH_TUTORIAL_TEXT = [
-        "I'm going to tell you what you can do on the screen behind me.",
-        "Please pay attention because I am not doing this again.",
-        "In the 'Keyboard' field, you're going to put the key you have bound to that button. You can see those by clicking the button on the top right.",
-        "In the 'Press Command' field, you're going to put what you want your chat to type to press that button.",
-        f"In the 'Hold Command' field, it's the same idea as the above one. Except it holds the button for {BUTTON_HOLD_INTERVAL} seconds.",
-        "Still following?",
-        "You can setup Button Combos by clicking the very obvious button for it after you select a console.",
-        "Instructions will follow.",
-        "Bye."
-    ]
+    MAIN_WINDOW_WIDTH = 1600
+    MAIN_WINDOW_HEIGHT = 900
     
-    TUTORIAL_TEXT = [
-        "I'm going to tell you what you can do on the screen behind me.",
-        "On the top left, put in your Twitch username. Correct capitalization matters."
-        "In the 'Keyboard' field, you're going to put the key you have bound to that button. You can see those by clicking the button on the top right.",
-        "In the 'Press Command' field, you're going to put what you want your chat to type to press that button.",
-        f"In the 'Hold Command' field, it's the same idea as the above one. Except it holds the button for {BUTTON_HOLD_INTERVAL} seconds.",
-        "You can setup Button Combos by clicking the very obvious button for it after you select a console.",
-        "Instructions will follow.",
-        "Have fun. o7",
-        "(You can close me now. I'm done. I appreciate the patience tho.)"
-    ]
+    KEYMAP_WINDOW_WIDTH = 800
+    KEYMAP_WINDOW_HEIGHT = 250
+   
+    COMBO_WINDOW_WIDTH = 1200
+    COMBO_WINDOW_HEIGHT = 500
 
 @dataclass
 class colors:
     DEFAULT_TEXT = 'white' # also maybe #F9F871'
-    TWITCH_PURPLE = '#6441A5'
+    TWITCH_PURPLE = '#5C3B99'
+    DARK_PURPLE = '#4c3080'
     GREEN = 'green'
     RED = 'red'
     BLACK = 'black'
+    WHITE = 'white'
     
 @dataclass
 class dirs:
@@ -189,6 +216,6 @@ class dirs:
 
 @dataclass
 class files:
-    CONTROL_SCHEMES = os.path.join(dirs.ROOT, 'configs', 'control_schemes.json')
+    CONSOLE_CONFIGS = os.path.join(dirs.ROOT, 'configs', 'console_configs.json')
     SETTINGS = os.path.join(dirs.CONFIGS, 'settings.json')
     
